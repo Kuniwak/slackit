@@ -26,5 +26,8 @@
   },
   "directories": {
     "test": "test"
+  },
+  "dependencies": {
+    "node-slack": "0.0.3"
   }
 }
