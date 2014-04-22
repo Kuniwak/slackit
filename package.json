@@ -1,0 +1,30 @@
+{
+  "name": "statbot-slack",
+  "version": "0.0.0",
+  "description": "Show daily statistics for Slack",
+  "main": "statbot.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OrgaChem/slack-statbot"
+  },
+  "keywords": [
+    "slack",
+    "bot"
+  ],
+  "author": "OrgaChem",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OrgaChem/slack-statbot/issues"
+  },
+  "homepage": "https://github.com/OrgaChem/slack-statbot",
+  "devDependencies": {
+    "mocha": "^1.18.2",
+    "chai": "^1.9.1"
+  },
+  "directories": {
+    "test": "test"
+  }
+}
