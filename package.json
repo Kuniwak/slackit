@@ -22,7 +22,8 @@
   "homepage": "https://github.com/OrgaChem/slack-statbot",
   "devDependencies": {
     "mocha": "^1.18.2",
-    "chai": "^1.9.1"
+    "chai": "^1.9.1",
+    "supertest": "^0.11.0"
   },
   "directories": {
     "test": "test"
