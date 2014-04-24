@@ -47,7 +47,7 @@ describe('Statbot', function() {
     });
   });
 
-  describe('send a message', function() {
+  describe('say a message', function() {
     it('should return a slack helper', function() {
       var statbot = new Statbot(VALID_OPTIONS);
 
@@ -55,7 +55,7 @@ describe('Statbot', function() {
       stub(statbot, 'getSlackHelper');
 
       var testMsg = 'test message';
-      statbot.send(testMsg);
+      statbot.say(testMsg);
 
       expect(statbot.getSlackHelper.getCall(0)).to.deep.equal({
         text: testMsg,
