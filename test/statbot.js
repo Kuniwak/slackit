@@ -46,4 +46,22 @@ describe('Statbot', function() {
       expect(helper).to.instanceof(SlackHelper);
     });
   });
+
+  describe('send a message', function() {
+    it('should return a slack helper', function() {
+      var statbot = new Statbot(VALID_OPTIONS);
+
+      // Replace the slack helper to the stub.
+      stub(statbot, 'getSlackHelper');
+
+      var testMsg = 'test message';
+      statbot.send(testMsg);
+
+      expect(statbot.getSlackHelper.getCall(0)).to.deep.equal({
+        text: testMsg,
+        channel: '#' + VALID_OPTIONS.channel,
+        username: VALID_OPTIONS.username
+      });
+    });
+  });
 });
