@@ -1,5 +1,8 @@
 var expect = require('chai').expect;
-var request = require('supertest');
+var testServer = require('supertest');
+
+var SlackHelper = require('node-slack');
+
 var Statbot = require('../');
 
 describe('Statbot', function() {
@@ -12,7 +15,7 @@ describe('Statbot', function() {
 
   var INVALID_OPTIONS = {};
 
-  describe('.constructor', function() {
+  describe('construct', function() {
     it('should throw an exception when given no options', function() {
       expect(function() {
         new Statbot();
@@ -27,6 +30,14 @@ describe('Statbot', function() {
 
     it('should construct the bot with no mechanisms', function() {
       new Statbot(VALID_OPTIONS);
+    });
+  });
+
+  describe('get a slack helper', function() {
+    it('should return a slack helper', function() {
+      var statbot = new Statbot(VALID_OPTIONS);
+      var helper = statbot.getSlackHelper();
+      expect(helper).to.instanceof(SlackHelper);
     });
   });
 })
