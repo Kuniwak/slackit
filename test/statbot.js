@@ -7,9 +7,9 @@ var Statbot = require('../');
 
 describe('Statbot', function() {
   var VALID_OPTIONS = {
-    teamname: 'orgachem',
+    teamname: 'example',
     channel: 'general',
-    username: 'test',
+    username: 'testbot',
     incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA'
   };
 
