@@ -1,5 +1,9 @@
-var expect = require('chai').expect;
-var testServer = require('supertest');
+var chai = require('chai');
+var sinon = require('sinon');
+var supertest = require('supertest');
+var expect = chai.expect;
+var stub = sinon.stub;
+
 
 var SlackHelper = require('node-slack');
 
@@ -28,8 +32,10 @@ describe('Statbot', function() {
       }).to.throw(Error);
     });
 
-    it('should construct the bot with no mechanisms', function() {
-      new Statbot(VALID_OPTIONS);
+    it('should construct the bot', function() {
+      expect(function() {
+        new Statbot(VALID_OPTIONS);
+      }).to.not.throw(Error);
     });
   });
 
@@ -40,4 +46,4 @@ describe('Statbot', function() {
       expect(helper).to.instanceof(SlackHelper);
     });
   });
-})
+});
