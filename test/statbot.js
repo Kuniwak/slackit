@@ -57,6 +57,7 @@ describe('Statbot', function() {
       var testMsg = 'test message';
       statbot.say(testMsg);
 
+      // See: https://github.com/xoxco/node-slack
       expect(statbot.getSlackHelper.getCall(0)).to.deep.equal({
         text: testMsg,
         channel: '#' + VALID_OPTIONS.channel,
