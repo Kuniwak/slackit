@@ -39,30 +39,11 @@ describe('Statbot', function() {
     });
   });
 
-  describe('get a slack helper', function() {
-    it('should return a slack helper', function() {
-      var statbot = new Statbot(VALID_OPTIONS);
-      var helper = statbot.getSlackHelper();
-      expect(helper).to.instanceof(SlackHelper);
-    });
-  });
-
   describe('say a message', function() {
-    it('should return a slack helper', function() {
+    it('should send a message by using http.request()', function() {
+      var testMsg = '0123456789abcdABCD @+-_!?/:"\'';
       var statbot = new Statbot(VALID_OPTIONS);
-
-      // Replace the slack helper to the stub.
-      stub(statbot, 'getSlackHelper');
-
-      var testMsg = 'test message';
       statbot.say(testMsg);
-
-      // See: https://github.com/xoxco/node-slack
-      expect(statbot.getSlackHelper.getCall(0)).to.deep.equal({
-        text: testMsg,
-        channel: '#' + VALID_OPTIONS.channel,
-        username: VALID_OPTIONS.username
-      });
     });
   });
 });
