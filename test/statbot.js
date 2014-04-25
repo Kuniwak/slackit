@@ -46,4 +46,8 @@ describe('Statbot', function() {
       statbot.say(testMsg);
     });
   });
+
+  describe('should returns a slack url', function() {
+
+  });
 });
