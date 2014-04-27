@@ -210,6 +210,14 @@ describe('Statbot', function() {
   });
 
 
+  describe('#getServerMechanism', function() {
+    it('should returns a server instance', function() {
+      var statbot = new Statbot(VALID_OPTIONS);
+      expect(statbot.getServerMechanism()).to.be.an('object');
+    });
+  });
+
+
   describe('#on', function() {
     it('should handle accepted outgoing WebHooks', function(done) {
       var statbot = new Statbot(VALID_OPTIONS);
@@ -244,7 +252,7 @@ describe('Statbot', function() {
         pathname: 'outgoing-hooks',
       });
 
-      request(statbot).post({
+      request(statbot.getServerMechanism()).post({
         url: outgoingHookURI,
         form: { payload: JSON.stringify(serverRes) },
       });
