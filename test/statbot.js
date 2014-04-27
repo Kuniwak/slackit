@@ -86,22 +86,22 @@ describe('Statbot', function() {
 
   describe('say a message', function() {
     before(function() {
-      // Spy Statbot#getSlackUri to return an URL to fixture server.
+      // Spy Statbot#getIncomingHookURI to return an URL to fixture server.
       // It requests to the test server that is `http://localhost:9000/`.
       //
       // This test server should echoes a request content as JSON.
-      spy(Statbot.prototype, 'getSlackUri');
-      Statbot.prototype.getSlackUri.returns = ['http://localhost:9000/'];
+      spy(Statbot.prototype, 'getIncomingHookURI');
+      Statbot.prototype.getIncomingHookURI.returns = ['http://localhost:9000/'];
     });
 
     after(function() {
-      Statbot.prototype.getSlackUri.restore();
+      Statbot.prototype.getIncomingHookURI.restore();
     });
 
 
-    it('should use incoming hook URI got by using #getSlackUri', function() {
+    it('should use incoming hook URI got by using #getIncomingHookURI', function() {
       var statbot = new MockedStatbot(VALID_OPTIONS);
-      expect(statbot.getSlackUri.called).to.be.true;
+      expect(statbot.getIncomingHookURI.called).to.be.true;
     });
 
 
@@ -129,7 +129,7 @@ describe('Statbot', function() {
   describe('return an incoming hook URI', function() {
     it('should return a default incoming hook URI', function() {
       var statbot = new Statbot(VALID_OPTIONS);
-      expect(statbot.getSlackUri()).to.be.equal(INCOMING_HOOK_URI);
+      expect(statbot.getIncomingHookURI()).to.be.equal(INCOMING_HOOK_URI);
     });
   });
 });
