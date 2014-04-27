@@ -1,8 +1,9 @@
+var fs = require('fs');
+var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 
 var SERVER_PORT = Number(process.argv[2]);
-
 
 // This fixture server accepts ANY path and echos a given request as JSON.
 // The response should have 4 fields (`url`, `method`, `headers`, `body`).

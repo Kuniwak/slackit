@@ -1,4 +1,5 @@
 var url = require('url');
+var path = require('path');
 var fork = require('child_process').fork;
 var expect = require('chai').expect;
 var stub = require('sinon').stub;
@@ -12,7 +13,7 @@ describe('Statbot', function() {
    */
   var VALID_OPTIONS = {
     teamname: 'example',
-    channel: 'general',
+    channel: '#general',
     username: 'testbot',
     incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA'
   };
@@ -26,16 +27,31 @@ describe('Statbot', function() {
    * Default the URL to Slack server.
    * @type {string}
    */
-  var INCOMING_HOOK_URI = 'https://example.slack.com/services/hooks/' +
-                          'incoming-webhook?token=AAAAAAAAAAAAAAAAAAAAAAAA';
-
+  var INCOMING_HOOK_URI = url.format({
+    protocol: 'https',
+    hostname: 'example.slack.com',
+    pathname: 'services/hooks/incoming-webhook',
+    query: { 'token': 'AAAAAAAAAAAAAAAAAAAAAAAA' },
+  });
 
   /**
    * URL to the fixture server.
+   * NOTE: The protocol should use SSL.
    * @type {string}
    */
-  var INCOMING_HOOK_URI_FIXTURE = 'http://localhost:9000/services/hooks/' +
-                                  'incoming-webhook?token=AAAAAAAAAAAAAAAAAAAAAAAA';
+  var INCOMING_HOOK_URI_FIXTURE = url.format({
+    protocol: 'http',
+    hostname: 'localhost',
+    port: 9000,
+    pathname: 'services/hooks/incoming-webhook',
+    query: { 'token': 'AAAAAAAAAAAAAAAAAAAAAAAA' },
+  });
+
+  /**
+   * Default the URL to Slack server.
+   * @type {string}
+   */
+  });
 
   /**
    * Server port for the fixture server.
@@ -49,7 +65,8 @@ describe('Statbot', function() {
   var serverProcess;
   before(function(done) {
     // Start a fixture server.
-    serverProcess = fork(__dirname + '/fixture/server', [String(FIXTURE_SERVER_PORT)]);
+    serverProcess = fork(path.join(__dirname, 'fixture', 'server'),
+                         [String(FIXTURE_SERVER_PORT)]);
     serverProcess.on('message', function(res) {
       if (!res || res.type !== 'listened') {
         throw Error('Cannot start the fixture server.');
@@ -110,6 +127,7 @@ describe('Statbot', function() {
      * @param {*} actualBody Response object as a JSON.
      */
     var expectMsgObj = function(expectedMsgObj, actualBody) {
+        expect(actualBody).to.be.an('string');
         var body = JSON.parse(actualBody);
         // Check the HTTP content.
         expect(body).to.have.property('url', url.parse(INCOMING_HOOK_URI_FIXTURE).path);
