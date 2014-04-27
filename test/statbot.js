@@ -3,6 +3,7 @@ var path = require('path');
 var fork = require('child_process').fork;
 var expect = require('chai').expect;
 var stub = require('sinon').stub;
+var request = require('supertest');
 
 var Statbot = require('../');
 
@@ -35,6 +36,14 @@ describe('Statbot', function() {
   });
 
   /**
+   * Listen port of the fixture server.
+   * The server will echo the given request to the port.
+   * @see test/fixture/server.js
+   * @type {number}
+   */
+  var FIXTURE_SERVER_PORT = 9000;
+
+  /**
    * URL to the fixture server.
    * NOTE: The protocol should use SSL.
    * @type {string}
@@ -42,28 +51,16 @@ describe('Statbot', function() {
   var INCOMING_HOOK_URI_FIXTURE = url.format({
     protocol: 'http',
     hostname: 'localhost',
-    port: 9000,
+    port: FIXTURE_SERVER_PORT,
     pathname: 'services/hooks/incoming-webhook',
     query: { 'token': 'AAAAAAAAAAAAAAAAAAAAAAAA' },
   });
 
   /**
-   * Default the URL to Slack server.
-   * @type {string}
+   * Listen port of outgoing WebHooks from the Slack server.
+   * @type {number}
    */
-  var OUTGOING_HOOK_URI = url.format({
-    protocol: 'https',
-    hostname: 'localhost',
-    port: 9001,
-    pathname: 'outgoing-webhook',
-  });
-
-  /**
-   * Server port for the fixture server.
-   * The server will echo the given request.
-   * @see test/fixture/server.js
-   */
-  var FIXTURE_SERVER_PORT = 9000;
+  var OUTGOING_HOOK_PORT = 9001;
 
 
   // We should test request over the HTTP connection.
@@ -213,10 +210,44 @@ describe('Statbot', function() {
   });
 
 
-  describe('#getOutgoingHookURI', function() {
-    it('should return a default outgoing hook URI', function() {
+  describe('#on', function() {
+    it('should handle accepted outgoing WebHooks', function(done) {
       var statbot = new Statbot(VALID_OPTIONS);
-      expect(statbot.getOutgoingHookURI()).to.be.equal(OUTGOING_HOOK_URI);
+      statbot.on(Statbot.EventType.MESSAGE, function(res) {
+        expect(res).to.an('object');
+        expect(res).to.have.property('team_id', serverRes.team_id);
+        expect(res).to.have.property('channel_id', serverRes.channel_id);
+        expect(res).to.have.property('channel_name', serverRes.channel_name);
+        expect(res).to.have.property('timestamp', new Date('2000/1/1').getTime());
+        expect(res).to.have.property('user_id', serverRes.user_id);
+        expect(res).to.have.property('user_name', serverRes.user_name);
+        expect(res).to.have.property('text', serverRes.text);
+        done();
+      });
+
+      // Emulates outgoing WebHooks from the Slack server.
+      var serverRes = {
+        token: 'XXXXXXXXXXXXXXXXXXXXXXXX',
+        team_id: 'T0123',
+        channel_id: 'C123456789',
+        channel_name: 'playground',
+        timestamp: new Date('2000/1/1').getTime(),
+        user_id: 'U0123456789',
+        user_name: 'Foo',
+        text: '0123456789abcdABCD @+-_!?/:"\'',
+      };
+
+      var outgoingHookURI = url.format({
+        protocol: 'https',
+        hostname: 'localhost',
+        port: OUTGOING_HOOK_PORT,
+        pathname: 'outgoing-hooks',
+      });
+
+      request(statbot).post({
+        url: outgoingHookURI,
+        form: { payload: JSON.stringify(serverRes) },
+      });
     });
   });
 });
