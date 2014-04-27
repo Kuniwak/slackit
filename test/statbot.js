@@ -103,14 +103,14 @@ describe('Statbot', function() {
 
       statbot.say(testMsg, function(err, response, jsonBody) {
         var body = JSON.parse(jsonBody);
-        // Check HTTP content.
+        // Check the HTTP content.
         expect(body).to.have.property('url', url.parse(INCOMING_HOOK_URI_FIXTURE).path);
         expect(body).to.have.property('method', 'POST');
         expect(body).to.have.deep.property('headers.content-type')
             .that.include('application/x-www-form-urlencoded');
         expect(body).to.have.deep.property('body.payload').that.is.a('string');
 
-        // Chech POST body.
+        // Check the POST body.
         var requestBody = JSON.parse(body.body.payload);
         expect(requestBody).to.have.property('text', testMsg);
         done();
