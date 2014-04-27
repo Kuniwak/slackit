@@ -3,7 +3,6 @@ var path = require('path');
 var fork = require('child_process').fork;
 var expect = require('chai').expect;
 var stub = require('sinon').stub;
-var request = require('supertest');
 
 var Statbot = require('../');
 
@@ -16,7 +15,9 @@ describe('Statbot', function() {
     teamname: 'example',
     channel: '#general',
     username: 'testbot',
-    incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA'
+    incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
+    outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
+    outgoingHookPath: 'outgoing-hook',
   };
 
   /**
@@ -41,7 +42,7 @@ describe('Statbot', function() {
    * @see test/fixture/server.js
    * @type {number}
    */
-  var FIXTURE_SERVER_PORT = 9000;
+  var INCOMING_HOOK_PORT = 9000;
 
   /**
    * URL to the fixture server.
@@ -51,7 +52,7 @@ describe('Statbot', function() {
   var INCOMING_HOOK_URI_FIXTURE = url.format({
     protocol: 'http',
     hostname: 'localhost',
-    port: FIXTURE_SERVER_PORT,
+    port: INCOMING_HOOK_PORT,
     pathname: 'services/hooks/incoming-webhook',
     query: { 'token': 'AAAAAAAAAAAAAAAAAAAAAAAA' },
   });
@@ -64,13 +65,13 @@ describe('Statbot', function() {
 
 
   // We should test request over the HTTP connection.
-  var serverProcess;
+  var incomingHookProcess;
   before(function(done) {
     // Start a fixture server.
-    serverProcess = fork(path.join(__dirname, 'fixture', 'server'),
-                         [String(FIXTURE_SERVER_PORT)]);
-    serverProcess.on('message', function(res) {
-      if (!res || res.type !== 'listened') {
+    incomingHookProcess = fork(path.join(__dirname, 'fixture', 'incoming_hook'),
+                         [String(INCOMING_HOOK_PORT)]);
+    incomingHookProcess.on('message', function(res) {
+      if (!res || !res.ready) {
         throw Error('Cannot start the fixture server.');
       }
       done();
@@ -78,7 +79,7 @@ describe('Statbot', function() {
   });
 
   after(function() {
-    serverProcess.kill();
+    incomingHookProcess.kill();
   });
 
 
@@ -213,12 +214,29 @@ describe('Statbot', function() {
   describe('#getServerMechanism', function() {
     it('should returns a server instance', function() {
       var statbot = new Statbot(VALID_OPTIONS);
-      expect(statbot.getServerMechanism()).to.be.an('object');
+      expect(statbot.getServerMechanism()).to.not.equal(null)
+                                          .and.not.equal(undefined);
     });
   });
 
 
   describe('#on', function() {
+    var outgoingHookProcess;
+    before(function(done) {
+      // Start a fixture server.
+      outgoingHookProcess = fork(path.join(__dirname, 'fixture', 'outgoing_hook'));
+      outgoingHookProcess.on('message', function(res) {
+        if (!res || !res.ready) {
+          throw Error('Cannot start the fixture server.');
+        }
+        done();
+      });
+    });
+
+    after(function() {
+      outgoingHookProcess.kill();
+    });
+
     it('should handle accepted outgoing WebHooks', function(done) {
       var statbot = new Statbot(VALID_OPTIONS);
       statbot.on(Statbot.EventType.MESSAGE, function(res) {
@@ -226,36 +244,39 @@ describe('Statbot', function() {
         expect(res).to.have.property('team_id', serverRes.team_id);
         expect(res).to.have.property('channel_id', serverRes.channel_id);
         expect(res).to.have.property('channel_name', serverRes.channel_name);
-        expect(res).to.have.property('timestamp', new Date('2000/1/1').getTime());
+        expect(res).to.have.property('timestamp', String(new Date('2000/1/1').getTime()));
         expect(res).to.have.property('user_id', serverRes.user_id);
         expect(res).to.have.property('user_name', serverRes.user_name);
         expect(res).to.have.property('text', serverRes.text);
         done();
       });
 
-      // Emulates outgoing WebHooks from the Slack server.
-      var serverRes = {
-        token: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-        team_id: 'T0123',
-        channel_id: 'C123456789',
-        channel_name: 'playground',
-        timestamp: new Date('2000/1/1').getTime(),
-        user_id: 'U0123456789',
-        user_name: 'Foo',
-        text: '0123456789abcdABCD @+-_!?/:"\'',
-      };
-
       var outgoingHookURI = url.format({
-        protocol: 'https',
+        // TODO: Switch to HTTPS server
+        protocol: 'http',
         hostname: 'localhost',
         port: OUTGOING_HOOK_PORT,
-        pathname: 'outgoing-hooks',
+        pathname: 'outgoing-hook',
       });
 
-      request(statbot.getServerMechanism()).post({
+      // Listen outgoing WebHooks.
+      statbot.listen(OUTGOING_HOOK_PORT);
+
+      // Echos the specified request to the Statbot.
+      var serverRes = {
         url: outgoingHookURI,
-        form: { payload: JSON.stringify(serverRes) },
-      });
+        form: {
+          token: VALID_OPTIONS.outgoingHookToken,
+          team_id: 'T0123',
+          channel_id: 'C123456789',
+          channel_name: 'playground',
+          timestamp: String(new Date('2000/1/1').getTime()),
+          user_id: 'U0123456789',
+          user_name: 'Foo',
+          text: '0123456789abcdABCD @+-_!?/:"\'',
+        },
+      };
+      outgoingHookProcess.send(serverRes);
     });
   });
 });

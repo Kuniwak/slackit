@@ -1,5 +1,3 @@
-var fs = require('fs');
-var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 
@@ -25,7 +23,7 @@ app.post(/.*/, function(req, res) {
 app.listen(SERVER_PORT);
 
 
-// Send an event message for listening started.
+// Send a ready event to parent process.
 if ('send' in process) {
-  process.send({ type: 'listened' });
+  process.send({ ready: true });
 }
