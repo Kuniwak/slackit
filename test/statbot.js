@@ -1,6 +1,7 @@
+var url = require('url');
 var fork = require('child_process').fork;
 var expect = require('chai').expect;
-var spy = require('sinon').spy;
+var stub = require('sinon').stub;
 
 var Statbot = require('../');
 
@@ -33,7 +34,7 @@ describe('Statbot', function() {
    * URL to the fixture server.
    * @type {string}
    */
-  var INCOMING_HOOK_URI_FIXTURE = 'https://localhost:9000/services/hooks/' +
+  var INCOMING_HOOK_URI_FIXTURE = 'http://localhost:9000/services/hooks/' +
                                   'incoming-webhook?token=AAAAAAAAAAAAAAAAAAAAAAAA';
 
   /**
@@ -87,11 +88,11 @@ describe('Statbot', function() {
   describe('say a message', function() {
     before(function() {
       // Spy Statbot#getIncomingHookURI to return an URL to fixture server.
-      // It requests to the test server that is `http://localhost:9000/`.
+      // It requests to the test server on `INCOMING_HOOK_URI_FIXTURE`.
       //
       // This test server should echoes a request content as JSON.
-      spy(Statbot.prototype, 'getIncomingHookURI');
-      Statbot.prototype.getIncomingHookURI.returns = ['http://localhost:9000/'];
+      stub(Statbot.prototype, 'getIncomingHookURI');
+      Statbot.prototype.getIncomingHookURI.returns(INCOMING_HOOK_URI_FIXTURE);
     });
 
     after(function() {
@@ -99,28 +100,22 @@ describe('Statbot', function() {
     });
 
 
-    it('should use incoming hook URI got by using #getIncomingHookURI', function() {
-      var statbot = new MockedStatbot(VALID_OPTIONS);
-      expect(statbot.getIncomingHookURI.called).to.be.true;
-    });
-
-
     it('should send a message', function(done) {
       var testMsg = '0123456789abcdABCD @+-_!?/:"\'';
-      var statbot = new MockedStatbot(VALID_OPTIONS);
+      var statbot = new Statbot(VALID_OPTIONS);
 
-      statbot.say(testMsg, function(response) {
-        var obj = JSON.parse(response);
-
+      statbot.say(testMsg, function(err, response, jsonBody) {
+        var body = JSON.parse(jsonBody);
         // Check HTTP content.
-        expect(obj).to.have.property('url', INCOMING_HOOK_URI_FIXTURE);
-        expect(obj).to.have.property('method', 'POST');
-        expect(obj).to.have.deep.property('headers.content-type', 'application/x-www-form-urlencoded');
-        expect(obj).to.include('body');
+        expect(body).to.have.property('url', url.parse(INCOMING_HOOK_URI_FIXTURE).path);
+        expect(body).to.have.property('method', 'POST');
+        expect(body).to.have.deep.property('headers.content-type')
+            .that.include('application/x-www-form-urlencoded');
+        expect(body).to.have.deep.property('body.payload').that.is.a('string');
 
         // Chech POST body.
-        var body = JSON.parse(obj['body'].replace(/^payload=/, ''));
-        expect(body).to.have.property('text', testMsg);
+        var requestBody = JSON.parse(body.body.payload);
+        expect(requestBody).to.have.property('text', testMsg);
         done();
       });
     });
