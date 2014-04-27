@@ -45,7 +45,7 @@ describe('Statbot', function() {
   var FIXTURE_SERVER_PORT = 9000;
 
 
-  // We should test with a HTTP connection.
+  // We should test request over the HTTP connection.
   var serverProcess;
   before(function(done) {
     // Start a fixture server.
@@ -70,13 +70,11 @@ describe('Statbot', function() {
       }).to.throw(Error);
     });
 
-
     it('should throw an exception when given invalid options', function() {
       expect(function() {
         new Statbot(INVALID_OPTIONS);
       }).to.throw(Error);
     });
-
 
     it('should construct the bot', function() {
       expect(function() {
@@ -85,12 +83,12 @@ describe('Statbot', function() {
     });
   });
 
+
   describe('say a message', function() {
     before(function() {
-      // Spy Statbot#getIncomingHookURI to return an URL to fixture server.
-      // It requests to the test server on `INCOMING_HOOK_URI_FIXTURE`.
-      //
-      // This test server should echoes a request content as JSON.
+      // Spy Statbot#getIncomingHookURI to return an URL to the fixture server.
+      // It requests to the fixture server on `INCOMING_HOOK_URI_FIXTURE`.
+      // This fixture server should echoes a request content as JSON.
       stub(Statbot.prototype, 'getIncomingHookURI');
       Statbot.prototype.getIncomingHookURI.returns(INCOMING_HOOK_URI_FIXTURE);
     });
@@ -98,7 +96,6 @@ describe('Statbot', function() {
     after(function() {
       Statbot.prototype.getIncomingHookURI.restore();
     });
-
 
     it('should send a message', function(done) {
       var testMsg = '0123456789abcdABCD @+-_!?/:"\'';
@@ -120,6 +117,7 @@ describe('Statbot', function() {
       });
     });
   });
+
 
   describe('return an incoming hook URI', function() {
     it('should return a default incoming hook URI', function() {
