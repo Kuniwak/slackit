@@ -1,15 +1,14 @@
-var chai = require('chai');
-var sinon = require('sinon');
-var supertest = require('supertest');
-var expect = chai.expect;
-var stub = sinon.stub;
-
-
-var SlackHelper = require('node-slack');
+var fork = require('child_process').fork;
+var expect = require('chai').expect;
+var spy = require('sinon').spy;
 
 var Statbot = require('../');
 
 describe('Statbot', function() {
+  /**
+   * Valid options to construct the Statbot.
+   * @type {Object.<string, string>}
+   */
   var VALID_OPTIONS = {
     teamname: 'example',
     channel: 'general',
@@ -17,7 +16,51 @@ describe('Statbot', function() {
     incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA'
   };
 
+  /**
+   * Invalid options to construct the Statbot.
+   */
   var INVALID_OPTIONS = {};
+
+  /**
+   * Default the URL to Slack server.
+   * @type {string}
+   */
+  var INCOMING_HOOK_URI = 'https://example.slack.com/services/hooks/' +
+                          'incoming-webhook?token=AAAAAAAAAAAAAAAAAAAAAAAA';
+
+
+  /**
+   * URL to the fixture server.
+   * @type {string}
+   */
+  var INCOMING_HOOK_URI_FIXTURE = 'https://localhost:9000/services/hooks/' +
+                                  'incoming-webhook?token=AAAAAAAAAAAAAAAAAAAAAAAA';
+
+  /**
+   * Server port for the fixture server.
+   * The server will echo the given request.
+   * @see test/fixture/server.js
+   */
+  var FIXTURE_SERVER_PORT = 9000;
+
+
+  // We should test with a HTTP connection.
+  var serverProcess;
+  before(function(done) {
+    // Start a fixture server.
+    serverProcess = fork(__dirname + '/fixture/server', [String(FIXTURE_SERVER_PORT)]);
+    serverProcess.on('message', function(res) {
+      if (!res || res.type !== 'listened') {
+        throw Error('Cannot start the fixture server.');
+      }
+      done();
+    });
+  });
+
+  after(function() {
+    serverProcess.kill();
+  });
+
 
   describe('construct', function() {
     it('should throw an exception when given no options', function() {
@@ -26,11 +69,13 @@ describe('Statbot', function() {
       }).to.throw(Error);
     });
 
+
     it('should throw an exception when given invalid options', function() {
       expect(function() {
         new Statbot(INVALID_OPTIONS);
       }).to.throw(Error);
     });
+
 
     it('should construct the bot', function() {
       expect(function() {
@@ -40,14 +85,51 @@ describe('Statbot', function() {
   });
 
   describe('say a message', function() {
-    it('should send a message by using http.request()', function() {
+    before(function() {
+      // Spy Statbot#getSlackUri to return an URL to fixture server.
+      // It requests to the test server that is `http://localhost:9000/`.
+      //
+      // This test server should echoes a request content as JSON.
+      spy(Statbot.prototype, 'getSlackUri');
+      Statbot.prototype.getSlackUri.returns = ['http://localhost:9000/'];
+    });
+
+    after(function() {
+      Statbot.prototype.getSlackUri.restore();
+    });
+
+
+    it('should use incoming hook URI got by using #getSlackUri', function() {
+      var statbot = new MockedStatbot(VALID_OPTIONS);
+      expect(statbot.getSlackUri.called).to.be.true;
+    });
+
+
+    it('should send a message', function(done) {
       var testMsg = '0123456789abcdABCD @+-_!?/:"\'';
-      var statbot = new Statbot(VALID_OPTIONS);
-      statbot.say(testMsg);
+      var statbot = new MockedStatbot(VALID_OPTIONS);
+
+      statbot.say(testMsg, function(response) {
+        var obj = JSON.parse(response);
+
+        // Check HTTP content.
+        expect(obj).to.have.property('url', INCOMING_HOOK_URI_FIXTURE);
+        expect(obj).to.have.property('method', 'POST');
+        expect(obj).to.have.deep.property('headers.content-type', 'application/x-www-form-urlencoded');
+        expect(obj).to.include('body');
+
+        // Chech POST body.
+        var body = JSON.parse(obj['body'].replace(/^payload=/, ''));
+        expect(body).to.have.property('text', testMsg);
+        done();
+      });
     });
   });
 
-  describe('should returns a slack url', function() {
-
+  describe('return an incoming hook URI', function() {
+    it('should return a default incoming hook URI', function() {
+      var statbot = new Statbot(VALID_OPTIONS);
+      expect(statbot.getSlackUri()).to.be.equal(INCOMING_HOOK_URI);
+    });
   });
 });
