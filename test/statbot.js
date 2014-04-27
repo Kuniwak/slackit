@@ -63,7 +63,7 @@ describe('Statbot', function() {
   });
 
 
-  describe('construct', function() {
+  describe('#constructor', function() {
     it('should throw an exception when given no options', function() {
       expect(function() {
         new Statbot();
@@ -84,7 +84,7 @@ describe('Statbot', function() {
   });
 
 
-  describe('say a message', function() {
+  describe('#say', function() {
     before(function() {
       // Spy Statbot#getIncomingHookURI to return an URL to the fixture server.
       // It requests to the fixture server on `INCOMING_HOOK_URI_FIXTURE`.
@@ -97,12 +97,20 @@ describe('Statbot', function() {
       Statbot.prototype.getIncomingHookURI.restore();
     });
 
-    it('should send a message', function(done) {
-      var testMsg = '0123456789abcdABCD @+-_!?/:"\'';
-      var statbot = new Statbot(VALID_OPTIONS);
 
-      statbot.say(testMsg, function(err, response, jsonBody) {
-        var body = JSON.parse(jsonBody);
+    /**
+     * Expects the specified message object has:
+     *
+     * - using valid URI for incoming WebHooks
+     * - using the `POST` method
+     * - using a Content-Type as `application/x-www-form-urlencoded`
+     * - including a `payload` as a form parameter
+     *
+     * @param {*} expectMsgObj Expected message object.
+     * @param {*} actualBody Response object as a JSON.
+     */
+    var expectMsgObj = function(expectedMsgObj, actualBody) {
+        var body = JSON.parse(actualBody);
         // Check the HTTP content.
         expect(body).to.have.property('url', url.parse(INCOMING_HOOK_URI_FIXTURE).path);
         expect(body).to.have.property('method', 'POST');
@@ -112,14 +120,69 @@ describe('Statbot', function() {
 
         // Check the POST body.
         var requestBody = JSON.parse(body.body.payload);
-        expect(requestBody).to.have.property('text', testMsg);
+        expect(requestBody).to.have.property('text', expectedMsgObj.text);
+        expect(requestBody).to.have.property('channel', expectedMsgObj.channel);
+
+        if ('username' in expectedMsgObj) {
+          expect(requestBody).to.have.property('username', expectedMsgObj.username);
+        }
+        if ('icon_emoji' in expectedMsgObj) {
+          expect(requestBody).to.have.property('icon_emoji', expectedMsgObj.icon_emoji);
+        }
+    };
+
+    it('should send a message by given a text (#general should be used)', function(done) {
+      var msg = '0123456789abcdABCD @+-_!?/:"\'';
+      var statbot = new Statbot(VALID_OPTIONS);
+
+      statbot.say(msg, function(err, response, jsonBody) {
+        // Use #general channel as default.
+        var expected = {
+          text: msg,
+          channel: '#general',
+        };
+        expectMsgObj(expected, jsonBody);
+        done();
+      });
+    });
+
+    it('should send a message by given an object has a text (#general should be used)', function(done) {
+      var msgObj = {
+        text: '0123456789abcdABCD @+-_!?/:"\''
+      };
+      var statbot = new Statbot(VALID_OPTIONS);
+
+      statbot.say(msgObj, function(err, response, jsonBody) {
+        // Use #general channel as default.
+        var expected = {
+          text: msgObj.text,
+          channel: '#general',
+        };
+        expectMsgObj(expected, jsonBody);
+        done();
+      });
+    });
+
+    it('should send a message by given an object has a text, channel, username, icon_emoji', function(done) {
+      var msgObj = {
+        text: '0123456789abcdABCD @+-_!?/:"\'',
+        channel: '#playground',
+        username: 'statbot',
+        icon_emoji: ':ghost:',
+      };
+      var statbot = new Statbot(VALID_OPTIONS);
+
+      statbot.say(msgObj, function(err, response, jsonBody) {
+        // Use #general channel as default.
+        var expected = msgObj;
+        expectMsgObj(expected, jsonBody);
         done();
       });
     });
   });
 
 
-  describe('return an incoming hook URI', function() {
+  describe('#getIncomingHookURI', function() {
     it('should return a default incoming hook URI', function() {
       var statbot = new Statbot(VALID_OPTIONS);
       expect(statbot.getIncomingHookURI()).to.be.equal(INCOMING_HOOK_URI);
