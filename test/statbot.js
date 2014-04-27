@@ -51,6 +51,11 @@ describe('Statbot', function() {
    * Default the URL to Slack server.
    * @type {string}
    */
+  var OUTGOING_HOOK_URI = url.format({
+    protocol: 'https',
+    hostname: 'localhost',
+    port: 9001,
+    pathname: 'outgoing-webhook',
   });
 
   /**
@@ -204,6 +209,14 @@ describe('Statbot', function() {
     it('should return a default incoming hook URI', function() {
       var statbot = new Statbot(VALID_OPTIONS);
       expect(statbot.getIncomingHookURI()).to.be.equal(INCOMING_HOOK_URI);
+    });
+  });
+
+
+  describe('#getOutgoingHookURI', function() {
+    it('should return a default outgoing hook URI', function() {
+      var statbot = new Statbot(VALID_OPTIONS);
+      expect(statbot.getOutgoingHookURI()).to.be.equal(OUTGOING_HOOK_URI);
     });
   });
 });
