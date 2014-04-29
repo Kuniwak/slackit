@@ -4,7 +4,6 @@ var path = require('path');
 var fork = require('child_process').fork;
 var expect = require('chai').expect;
 var stub = require('sinon').stub;
-var spy = require('sinon').spy;
 
 var Statbot = require('../');
 
@@ -106,19 +105,6 @@ describe('Statbot', function() {
 
 
   describe('#say', function() {
-    before(function() {
-      // Spy Statbot#getIncomingHookURI to return an URL to the fixture server.
-      // It requests to the fixture server on `INCOMING_HOOK_URI_FIXTURE`.
-      // This fixture server should echoes a request content as JSON.
-      stub(Statbot.prototype, 'getIncomingHookURI');
-      Statbot.prototype.getIncomingHookURI.returns(INCOMING_HOOK_URI_FIXTURE);
-    });
-
-    after(function() {
-      Statbot.prototype.getIncomingHookURI.restore();
-    });
-
-
     /**
      * Expects the specified message object has:
      *
@@ -152,6 +138,19 @@ describe('Statbot', function() {
           expect(requestBody).to.have.property('icon_emoji', expectedMsgObj.icon_emoji);
         }
     };
+
+
+    before(function() {
+      // Spy Statbot#getIncomingHookURI to return an URL to the fixture server.
+      // It requests to the fixture server on `INCOMING_HOOK_URI_FIXTURE`.
+      // This fixture server should echoes a request content as JSON.
+      stub(Statbot.prototype, 'getIncomingHookURI');
+      Statbot.prototype.getIncomingHookURI.returns(INCOMING_HOOK_URI_FIXTURE);
+    });
+
+    after(function() {
+      Statbot.prototype.getIncomingHookURI.restore();
+    });
 
     it('should call getIncomingHookURI to get an incoming WebHooks URI', function() {
       // This behavior is necessary because tests for `#say` expect to be able
@@ -230,9 +229,45 @@ describe('Statbot', function() {
 
 
   describe('#on', function() {
+    /**
+     * Expects an outgoing WebHook request.
+     * @param {Object.<string, string>} expected Expected outgoing WebHook
+     *    request. It should have 8 fields (`token`, `team_id`, `channel_id`,
+     *    `channel_name`, `timestamp`, `user_id`, `user_name`, `text`).
+     * @param {*} actual Actual parameter for the event handler.
+     * @see https://{your team name}.slack.com/services/new/outgoing-webhook
+     */
+    var expectOutgoingHookRequest = function(expected, actual) {
+      expect(actual).to.an('object');
+      expect(actual).to.have.property('team_id', expected.team_id);
+      expect(actual).to.have.property('channel_id', expected.channel_id);
+      expect(actual).to.have.property('channel_name', expected.channel_name);
+      expect(actual).to.have.property('timestamp', expected.timestamp);
+      expect(actual).to.have.property('user_id', expected.user_id);
+      expect(actual).to.have.property('user_name', expected.user_name);
+      expect(actual).to.have.property('text', expected.text);
+    };
+
+    /**
+     * Form data sent by outgoing WebHooks.
+     * @type {Object.<string, string>}
+     * @type {Object}
+     * @see https://{your team name}.slack.com/services/new/outgoing-webhook
+     */
+    var arrivedPostData = {
+      token: VALID_OPTIONS.outgoingHookToken,
+      team_id: 'T0123',
+      channel_id: 'C123456789',
+      channel_name: 'playground',
+      timestamp: String(new Date('2000/1/1').getTime()),
+      user_id: 'U0123456789',
+      user_name: 'Foo',
+      text: '0123456789abcdABCD @+-_!?/:"\'',
+    };
+
     var outgoingHookProcess;
     before(function(done) {
-      // Start a fixture server.
+      // Start a fixture server that will send request to the statbot.
       outgoingHookProcess = fork(path.join(__dirname, 'fixture', 'outgoing_hook'));
       outgoingHookProcess.on('message', function(res) {
         if (!res || !res.ready) {
@@ -246,24 +281,16 @@ describe('Statbot', function() {
       outgoingHookProcess.kill();
     });
 
-    it('should handle accepted outgoing WebHooks', function(done) {
+    it('should handle accepted outgoing WebHooks over HTTP', function(done) {
       var statbot = new Statbot(VALID_OPTIONS);
 
-      var timestamp = String(new Date('2000/1/1').getTime());
       statbot.on(Statbot.EventType.MESSAGE, function(res) {
-        expect(res).to.an('object');
-        expect(res).to.have.property('team_id', serverRes.team_id);
-        expect(res).to.have.property('channel_id', serverRes.channel_id);
-        expect(res).to.have.property('channel_name', serverRes.channel_name);
-        expect(res).to.have.property('timestamp', timestamp);
-        expect(res).to.have.property('user_id', serverRes.user_id);
-        expect(res).to.have.property('user_name', serverRes.user_name);
-        expect(res).to.have.property('text', serverRes.text);
+        expectOutgoingHookRequest(arrivedPostData, res);
         done();
       });
 
+      // Using HTTP
       var outgoingHookURI = url.format({
-        // TODO: Switch to HTTPS server
         protocol: 'http',
         hostname: 'localhost',
         port: OUTGOING_HOOK_PORT,
@@ -273,21 +300,32 @@ describe('Statbot', function() {
       // Listen outgoing WebHooks.
       statbot.listen(OUTGOING_HOOK_PORT);
 
-      // Echos the specified request to the Statbot.
-      var serverRes = {
-        url: outgoingHookURI,
-        form: {
-          token: VALID_OPTIONS.outgoingHookToken,
-          team_id: 'T0123',
-          channel_id: 'C123456789',
-          channel_name: 'playground',
-          timestamp: timestamp,
-          user_id: 'U0123456789',
-          user_name: 'Foo',
-          text: '0123456789abcdABCD @+-_!?/:"\'',
-        },
-      };
-      outgoingHookProcess.send(serverRes);
+      // Send a request to the statbot over the child process.
+      outgoingHookProcess.send({ url: outgoingHookURI, form: arrivedPostData });
+    });
+
+
+    it('should handle accepted outgoing WebHooks over HTTPS', function(done) {
+      var statbot = new Statbot(VALID_OPTIONS);
+
+      statbot.on(Statbot.EventType.MESSAGE, function(res) {
+        expectOutgoingHookRequest(arrivedPostData, res);
+        done();
+      });
+
+      // Using HTTPS
+      var outgoingHookURI = url.format({
+        protocol: 'https',
+        hostname: 'localhost',
+        port: OUTGOING_HOOK_PORT,
+        pathname: 'outgoing-hook',
+      });
+
+      // Listen outgoing WebHooks.
+      statbot.listen(OUTGOING_HOOK_PORT);
+
+      // Send a request to the statbot over the child process.
+      outgoingHookProcess.send({ url: outgoingHookURI, form: arrivedPostData });
     });
   });
 });
