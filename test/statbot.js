@@ -1,8 +1,10 @@
+/* jshint expr: true */
 var url = require('url');
 var path = require('path');
 var fork = require('child_process').fork;
 var expect = require('chai').expect;
 var stub = require('sinon').stub;
+var spy = require('sinon').spy;
 
 var Statbot = require('../');
 
@@ -150,6 +152,14 @@ describe('Statbot', function() {
           expect(requestBody).to.have.property('icon_emoji', expectedMsgObj.icon_emoji);
         }
     };
+
+    it('should call getIncomingHookURI to get an incoming WebHooks URI', function() {
+      // This behavior is necessary because tests for `#say` expect to be able
+      // to stub `#getIncomingHookURI`. This stubbing make tests reality.
+      var statbot = new Statbot(VALID_OPTIONS);
+      statbot.say('test');
+      expect(statbot.getIncomingHookURI).to.have.property('called').that.is.true;
+    });
 
     it('should send a message by given a text (#general should be used)', function(done) {
       var msg = '0123456789abcdABCD @+-_!?/:"\'';
