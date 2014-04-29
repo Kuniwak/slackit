@@ -97,9 +97,8 @@ describe('Statbot', function() {
     });
 
     it('should construct the bot', function() {
-      expect(function() {
-        new Statbot(VALID_OPTIONS);
-      }).to.not.throw(Error);
+      var statbot = new Statbot(VALID_OPTIONS);
+      expect(statbot).to.be.instanceof(Statbot);
     });
   });
 
@@ -239,12 +238,14 @@ describe('Statbot', function() {
 
     it('should handle accepted outgoing WebHooks', function(done) {
       var statbot = new Statbot(VALID_OPTIONS);
+
+      var timestamp = String(new Date('2000/1/1').getTime());
       statbot.on(Statbot.EventType.MESSAGE, function(res) {
         expect(res).to.an('object');
         expect(res).to.have.property('team_id', serverRes.team_id);
         expect(res).to.have.property('channel_id', serverRes.channel_id);
         expect(res).to.have.property('channel_name', serverRes.channel_name);
-        expect(res).to.have.property('timestamp', String(new Date('2000/1/1').getTime()));
+        expect(res).to.have.property('timestamp', timestamp);
         expect(res).to.have.property('user_id', serverRes.user_id);
         expect(res).to.have.property('user_name', serverRes.user_name);
         expect(res).to.have.property('text', serverRes.text);
@@ -270,7 +271,7 @@ describe('Statbot', function() {
           team_id: 'T0123',
           channel_id: 'C123456789',
           channel_name: 'playground',
-          timestamp: String(new Date('2000/1/1').getTime()),
+          timestamp: timestamp,
           user_id: 'U0123456789',
           user_name: 'Foo',
           text: '0123456789abcdABCD @+-_!?/:"\'',
