@@ -18,7 +18,7 @@ describe('Statbot', function() {
     username: 'testbot',
     incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookPath: 'outgoing-hook',
+    outgoingHookURI: 'outgoing-hook',
   };
 
   /**
@@ -63,6 +63,12 @@ describe('Statbot', function() {
    * @type {number}
    */
   var OUTGOING_HOOK_PORT = 9001;
+
+  /**
+   * Listen port of outgoing WebHooks over SSL from the Slack server.
+   * @type {number}
+   */
+  var OUTGOING_HOOK_OVER_SSL_PORT = 9002;
 
 
   // We should test request over the HTTP connection.
@@ -322,7 +328,7 @@ describe('Statbot', function() {
       });
 
       // Listen outgoing WebHooks.
-      statbot.listen(OUTGOING_HOOK_PORT);
+      statbot.listen(OUTGOING_HOOK_OVER_SSL_PORT);
 
       // Send a request to the statbot over the child process.
       outgoingHookProcess.send({ url: outgoingHookURI, form: arrivedPostData });
