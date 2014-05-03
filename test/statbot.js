@@ -71,13 +71,7 @@ describe('Statbot', function() {
    * Listen port of outgoing WebHooks from the Slack server.
    * @type {number}
    */
-  var OUTGOING_HOOK_HTTP_PORT = 9001;
-
-  /**
-   * Listen port of outgoing WebHooks over SSL from the Slack server.
-   * @type {number}
-   */
-  var OUTGOING_HOOK_HTTPS_PORT = 9002;
+  var OUTGOING_HOOK_PORT = 9001;
 
 
   // We should test request over the HTTP connection.
@@ -301,7 +295,7 @@ describe('Statbot', function() {
     var OUTGOING_HOOK_HTTP_URI =  url.format({
       protocol: 'http',
       hostname: 'localhost',
-      port: OUTGOING_HOOK_HTTP_PORT,
+      port: OUTGOING_HOOK_PORT,
       pathname: VALID_OPTIONS_HTTP.outgoingHookURI,
     });
 
@@ -313,7 +307,7 @@ describe('Statbot', function() {
     var OUTGOING_HOOK_HTTPS_URI = url.format({
       protocol: 'https',
       hostname: 'localhost',
-      port: OUTGOING_HOOK_HTTPS_PORT,
+      port: OUTGOING_HOOK_PORT,
       pathname: VALID_OPTIONS_HTTPS.outgoingHookURI,
     });
 
