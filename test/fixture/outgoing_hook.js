@@ -5,6 +5,7 @@ process.on('message', function(data) {
   request.post({
     url: data.url,
     form: data.form,
+    rejectUnauthorized: false,
   });
 });
 
