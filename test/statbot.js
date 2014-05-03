@@ -4,6 +4,7 @@ var path = require('path');
 var fork = require('child_process').fork;
 var expect = require('chai').expect;
 var stub = require('sinon').stub;
+var extend = require('util-extend');
 
 var Statbot = require('../');
 
@@ -15,11 +16,19 @@ describe('Statbot', function() {
   var VALID_OPTIONS = {
     teamname: 'example',
     channel: '#general',
-    username: 'testbot',
+    botname: 'testbot',
     incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookURI: 'outgoing-hook',
+    outgoingHookURI: '/outgoing-hook',
   };
+
+  /**
+   * Valid options to construct the Statbot.
+   * @type {Object.<string, string>}
+   */
+  var VALID_OPTIONS_HTTP = extend({
+    http: true,
+  }, VALID_OPTIONS);
 
   /**
    * Invalid options to construct the Statbot.
@@ -137,8 +146,8 @@ describe('Statbot', function() {
         expect(requestBody).to.have.property('text', expectedMsgObj.text);
         expect(requestBody).to.have.property('channel', expectedMsgObj.channel);
 
-        if ('username' in expectedMsgObj) {
-          expect(requestBody).to.have.property('username', expectedMsgObj.username);
+        if ('botname' in expectedMsgObj) {
+          expect(requestBody).to.have.property('botname', expectedMsgObj.botname);
         }
         if ('icon_emoji' in expectedMsgObj) {
           expect(requestBody).to.have.property('icon_emoji', expectedMsgObj.icon_emoji);
@@ -198,11 +207,11 @@ describe('Statbot', function() {
       });
     });
 
-    it('should send a message by given an object has a text, channel, username, icon_emoji', function(done) {
+    it('should send a message by given an object has a text, channel, botname, icon_emoji', function(done) {
       var msgObj = {
         text: '0123456789abcdABCD @+-_!?/:"\'',
         channel: '#playground',
-        username: 'statbot',
+        botname: 'statbot',
         icon_emoji: ':ghost:',
       };
       var statbot = new Statbot(VALID_OPTIONS);
@@ -226,10 +235,24 @@ describe('Statbot', function() {
 
 
   describe('#getServerMechanism', function() {
-    it('should returns a server instance', function() {
+    it('should returns a promise wrapped the HTTPS server mechanism', function(done) {
       var statbot = new Statbot(VALID_OPTIONS);
-      expect(statbot.getServerMechanism()).to.not.equal(null)
-                                          .and.not.equal(undefined);
+      expect(statbot.getServerMechanism()).to.have.property('then')
+          .that.is.a('function');
+      statbot.getServerMechanism().then(function(server) {
+        expect(server).to.have.property('listen').that.is.a('function');
+        done();
+      });
+    });
+
+    it('should returns a promise wrapped the HTTP server mechanism', function(done) {
+      var statbot = new Statbot(VALID_OPTIONS_HTTP);
+      expect(statbot.getServerMechanism()).to.have.property('then')
+          .that.is.a('function');
+      statbot.getServerMechanism().then(function(server) {
+        expect(server).to.have.property('listen').that.is.a('function');
+        done();
+      });
     });
   });
 
@@ -288,7 +311,7 @@ describe('Statbot', function() {
     });
 
     it('should handle accepted outgoing WebHooks over HTTP', function(done) {
-      var statbot = new Statbot(VALID_OPTIONS);
+      var statbot = new Statbot(VALID_OPTIONS_HTTP);
 
       statbot.on(Statbot.EventType.MESSAGE, function(res) {
         expectOutgoingHookRequest(arrivedPostData, res);
@@ -300,14 +323,14 @@ describe('Statbot', function() {
         protocol: 'http',
         hostname: 'localhost',
         port: OUTGOING_HOOK_PORT,
-        pathname: 'outgoing-hook',
+        pathname: VALID_OPTIONS_HTTP.outgoingHookURI,
       });
 
       // Listen outgoing WebHooks.
-      statbot.listen(OUTGOING_HOOK_PORT);
-
-      // Send a request to the statbot over the child process.
-      outgoingHookProcess.send({ url: outgoingHookURI, form: arrivedPostData });
+      statbot.listen(OUTGOING_HOOK_PORT, function() {
+        // Send a request to the statbot over the child process.
+        outgoingHookProcess.send({ url: outgoingHookURI, form: arrivedPostData });
+      });
     });
 
 
@@ -323,15 +346,15 @@ describe('Statbot', function() {
       var outgoingHookURI = url.format({
         protocol: 'https',
         hostname: 'localhost',
-        port: OUTGOING_HOOK_PORT,
-        pathname: 'outgoing-hook',
+        port: OUTGOING_HOOK_OVER_SSL_PORT,
+        pathname: VALID_OPTIONS.outgoingHookURI,
       });
 
       // Listen outgoing WebHooks.
-      statbot.listen(OUTGOING_HOOK_OVER_SSL_PORT);
-
-      // Send a request to the statbot over the child process.
-      outgoingHookProcess.send({ url: outgoingHookURI, form: arrivedPostData });
+      statbot.listen(OUTGOING_HOOK_OVER_SSL_PORT, function() {
+        // Send a request to the statbot over the child process.
+        outgoingHookProcess.send({ url: outgoingHookURI, form: arrivedPostData });
+      });
     });
   });
 });

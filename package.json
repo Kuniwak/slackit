@@ -41,6 +41,9 @@
     "cli": "^0.4.5",
     "express": "^4.0.0",
     "request": "^2.34.0",
-    "body-parser": "^1.0.2"
+    "body-parser": "^1.0.2",
+    "pem": "^1.4.0",
+    "node-promise": "^0.5.10",
+    "util-extend": "^1.0.1"
   }
 }
