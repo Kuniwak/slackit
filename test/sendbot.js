@@ -11,7 +11,7 @@ chai.use(sinonChai);
 var expect = chai.expect;
 var extend = require('util-extend');
 var winston = require('winston');
-winston.level = 'debug';
+winston.level = 'warn';
 
 var SendBot = require('../').SendBot;
 
