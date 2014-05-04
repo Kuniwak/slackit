@@ -5,6 +5,8 @@ var fork = require('child_process').fork;
 var expect = require('chai').expect;
 var stub = require('sinon').stub;
 var extend = require('util-extend');
+var winston = require('winston');
+winston.level = 'warn';
 
 var ReceptBot = require('../').ReceptBot;
 

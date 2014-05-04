@@ -127,7 +127,7 @@ describe('BasicBot', function() {
     var statbot;
     beforeEach(function() {
       statbot = new BasicBot(VALID_OPTIONS_HTTPS);
-      spy(statbot.sendingMechanism, 'say');
+      stub(statbot.sendingMechanism, 'say');
     });
 
     afterEach(function() {
