@@ -1,8 +1,8 @@
 {
-  "receiving": {
+  "recept": {
     "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX"
   },
-  "sending": {
+  "send": {
     "teamName": "example",
     "botName": "testbot",
     "incomingHookToken": "AAAAAAAAAAAAAAAAAAAAAAAA"

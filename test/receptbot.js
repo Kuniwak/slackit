@@ -6,11 +6,11 @@ var expect = require('chai').expect;
 var stub = require('sinon').stub;
 var extend = require('util-extend');
 
-var ReceivingBot = require('../').ReceivingBot;
+var ReceptBot = require('../').ReceptBot;
 
-describe('ReceivingBot', function() {
+describe('ReceptBot', function() {
   /**
-   * Valid options to construct the ReceivingBot.
+   * Valid options to construct the ReceptBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTPS = {
@@ -19,7 +19,7 @@ describe('ReceivingBot', function() {
   };
 
   /**
-   * Valid options to construct the ReceivingBot.
+   * Valid options to construct the ReceptBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
@@ -27,7 +27,7 @@ describe('ReceivingBot', function() {
   }, VALID_OPTIONS_HTTPS);
 
   /**
-   * Invalid options to construct the ReceivingBot.
+   * Invalid options to construct the ReceptBot.
    */
   var INVALID_OPTIONS = {};
 
@@ -41,26 +41,26 @@ describe('ReceivingBot', function() {
   describe('#constructor', function() {
     it('should throw an exception when given no options', function() {
       expect(function() {
-        new ReceivingBot();
+        new ReceptBot();
       }).to.throw(Error);
     });
 
     it('should throw an exception when given invalid options', function() {
       expect(function() {
-        new ReceivingBot(INVALID_OPTIONS);
+        new ReceptBot(INVALID_OPTIONS);
       }).to.throw(Error);
     });
 
     it('should construct the bot', function() {
-      var statbot = new ReceivingBot(VALID_OPTIONS_HTTPS);
-      expect(statbot).to.be.instanceof(ReceivingBot);
+      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS);
+      expect(statbot).to.be.instanceof(ReceptBot);
     });
   });
 
 
   describe('#getServerMechanism', function() {
     it('should returns a promise wrapped the HTTPS server mechanism', function(done) {
-      var statbot = new ReceivingBot(VALID_OPTIONS_HTTPS);
+      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS);
       expect(statbot.getServerMechanism()).to.have.property('then')
           .that.is.a('function');
       statbot.getServerMechanism().then(function(server) {
@@ -70,7 +70,7 @@ describe('ReceivingBot', function() {
     });
 
     it('should returns a promise wrapped the HTTP server mechanism', function(done) {
-      var statbot = new ReceivingBot(VALID_OPTIONS_HTTP);
+      var statbot = new ReceptBot(VALID_OPTIONS_HTTP);
       expect(statbot.getServerMechanism()).to.have.property('then')
           .that.is.a('function');
       statbot.getServerMechanism().then(function(server) {
@@ -178,7 +178,7 @@ describe('ReceivingBot', function() {
     var expectEventWasFired = function(eventType, statbotOptions, outgoingHookURI, receivedData, done) {
       var port = url.parse(outgoingHookURI).port;
 
-      statbot = new ReceivingBot(statbotOptions);
+      statbot = new ReceptBot(statbotOptions);
       statbot.on(eventType, function(res) {
         expectOutgoingHookRequest(receivedData, res);
         done();
@@ -210,7 +210,7 @@ describe('ReceivingBot', function() {
 
     it('should handle accepted outgoing WebHooks over HTTP', function(done) {
       expectEventWasFired(
-          ReceivingBot.EventType.MESSAGE,
+          ReceptBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTP,
           OUTGOING_HOOK_HTTP_URI,
           VALID_ARRIVED_POST_DATA,
@@ -219,7 +219,7 @@ describe('ReceivingBot', function() {
 
     it('should handle accepted outgoing WebHooks over HTTPS', function(done) {
       expectEventWasFired(
-          ReceivingBot.EventType.MESSAGE,
+          ReceptBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTPS,
           OUTGOING_HOOK_HTTPS_URI,
           VALID_ARRIVED_POST_DATA,
@@ -228,7 +228,7 @@ describe('ReceivingBot', function() {
 
     it('should reject unaccepted outgoing WebHooks over HTTP', function(done) {
       expectEventWasFired(
-          ReceivingBot.EventType.INVALID_MESSAGE,
+          ReceptBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTP,
           OUTGOING_HOOK_HTTP_URI,
           INVALID_ARRIVED_POST_DATA,
@@ -237,7 +237,7 @@ describe('ReceivingBot', function() {
 
     it('should reject unaccepted outgoing WebHooks over HTTPS', function(done) {
       expectEventWasFired(
-          ReceivingBot.EventType.INVALID_MESSAGE,
+          ReceptBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTPS,
           OUTGOING_HOOK_HTTPS_URI,
           INVALID_ARRIVED_POST_DATA,

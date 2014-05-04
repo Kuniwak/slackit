@@ -11,11 +11,11 @@ chai.use(sinonChai);
 var expect = chai.expect;
 var extend = require('util-extend');
 
-var SendingBot = require('../').SendingBot;
+var SendBot = require('../').SendBot;
 
-describe('SendingBot', function() {
+describe('SendBot', function() {
   /**
-   * Valid options to construct the SendingBot.
+   * Valid options to construct the SendBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTPS = {
@@ -26,7 +26,7 @@ describe('SendingBot', function() {
   };
 
   /**
-   * Valid options to construct the SendingBot.
+   * Valid options to construct the SendBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
@@ -34,7 +34,7 @@ describe('SendingBot', function() {
   }, VALID_OPTIONS_HTTPS);
 
   /**
-   * Invalid options to construct the SendingBot.
+   * Invalid options to construct the SendBot.
    */
   var INVALID_OPTIONS = {};
 
@@ -92,19 +92,19 @@ describe('SendingBot', function() {
   describe('#constructor', function() {
     it('should throw an exception when given no options', function() {
       expect(function() {
-        new SendingBot();
+        new SendBot();
       }).to.throw(Error);
     });
 
     it('should throw an exception when given invalid options', function() {
       expect(function() {
-        new SendingBot(INVALID_OPTIONS);
+        new SendBot(INVALID_OPTIONS);
       }).to.throw(Error);
     });
 
     it('should construct the bot', function() {
-      var statbot = new SendingBot(VALID_OPTIONS_HTTPS);
-      expect(statbot).to.be.instanceof(SendingBot);
+      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
+      expect(statbot).to.be.instanceof(SendBot);
     });
   });
 
@@ -146,28 +146,28 @@ describe('SendingBot', function() {
 
 
     before(function() {
-      // Spy SendingBot#getIncomingHookURI to return an URL to the fixture server.
+      // Spy SendBot#getIncomingHookURI to return an URL to the fixture server.
       // It requests to the fixture server on `INCOMING_HOOK_URI_FIXTURE`.
       // This fixture server should echoes a request content as JSON.
-      stub(SendingBot.prototype, 'getIncomingHookURI');
-      SendingBot.prototype.getIncomingHookURI.returns(INCOMING_HOOK_URI_FIXTURE);
+      stub(SendBot.prototype, 'getIncomingHookURI');
+      SendBot.prototype.getIncomingHookURI.returns(INCOMING_HOOK_URI_FIXTURE);
     });
 
     after(function() {
-      SendingBot.prototype.getIncomingHookURI.restore();
+      SendBot.prototype.getIncomingHookURI.restore();
     });
 
     it('should call getIncomingHookURI to get an incoming WebHooks URI', function() {
       // This behavior is necessary because tests for `#say` expect to be able
       // to stub `#getIncomingHookURI`. This stubbing make tests reality.
-      var statbot = new SendingBot(VALID_OPTIONS_HTTPS);
+      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
       statbot.say('test');
       expect(statbot.getIncomingHookURI).to.have.property('called').that.is.true;
     });
 
     it('should send a message by given a text (#general should be used)', function(done) {
       var msg = '0123456789abcdABCD @+-_!?/:"\'';
-      var statbot = new SendingBot(VALID_OPTIONS_HTTPS);
+      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
 
       statbot.say(msg, function(err, response, jsonBody) {
         // Use #general channel as default.
@@ -184,7 +184,7 @@ describe('SendingBot', function() {
       var msgObj = {
         text: '0123456789abcdABCD @+-_!?/:"\''
       };
-      var statbot = new SendingBot(VALID_OPTIONS_HTTPS);
+      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
 
       statbot.say(msgObj, function(err, response, jsonBody) {
         // Use #general channel as default.
@@ -204,7 +204,7 @@ describe('SendingBot', function() {
         botname: 'statbot',
         icon_emoji: ':ghost:',
       };
-      var statbot = new SendingBot(VALID_OPTIONS_HTTPS);
+      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
 
       statbot.say(msgObj, function(err, response, jsonBody) {
         // Use #general channel as default.
@@ -220,7 +220,7 @@ describe('SendingBot', function() {
     it('should return a default incoming hook URI', function() {
       // This spec is important because tests for #say need to be able to switch
       // the real server to the mock server.
-      var statbot = new SendingBot(VALID_OPTIONS_HTTPS);
+      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
       expect(statbot.getIncomingHookURI()).to.be.equal(INCOMING_HOOK_URI);
     });
   });

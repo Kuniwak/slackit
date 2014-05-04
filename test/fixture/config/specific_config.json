@@ -1,5 +1,5 @@
 {
-  "receiving": {
+  "recept": {
     "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
 
     "options": {
@@ -7,7 +7,7 @@
       "http": true
     }
   },
-  "sending": {
+  "send": {
     "teamName": "example",
     "botName": "testbot",
     "incomingHookToken": "AAAAAAAAAAAAAAAAAAAAAAAA",

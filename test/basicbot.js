@@ -11,11 +11,11 @@ chai.use(sinonChai);
 var expect = chai.expect;
 var extend = require('util-extend');
 
-var Statbot = require('../');
+var BasicBot = require('../');
 
-describe('Statbot', function() {
+describe('BasicBot', function() {
   /**
-   * Valid options to construct the Statbot.
+   * Valid options to construct the BasicBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTPS = {
@@ -28,7 +28,7 @@ describe('Statbot', function() {
   };
 
   /**
-   * Valid options to construct the Statbot.
+   * Valid options to construct the BasicBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
@@ -36,7 +36,7 @@ describe('Statbot', function() {
   }, VALID_OPTIONS_HTTPS);
 
   /**
-   * Invalid options to construct the Statbot.
+   * Invalid options to construct the BasicBot.
    */
   var INVALID_OPTIONS = {};
 
@@ -82,26 +82,26 @@ describe('Statbot', function() {
   describe('#constructor', function() {
     it('should throw an exception when given no options', function() {
       expect(function() {
-        new Statbot();
+        new BasicBot();
       }).to.throw(Error);
     });
 
     it('should throw an exception when given invalid options', function() {
       expect(function() {
-        new Statbot(INVALID_OPTIONS);
+        new BasicBot(INVALID_OPTIONS);
       }).to.throw(Error);
     });
 
     it('should construct the bot', function() {
-      var statbot = new Statbot(VALID_OPTIONS_HTTPS);
-      expect(statbot).to.be.instanceof(Statbot);
+      var statbot = new BasicBot(VALID_OPTIONS_HTTPS);
+      expect(statbot).to.be.instanceof(BasicBot);
     });
   });
 
 
   describe('#createReceivingMechanism', function() {
     it('should return a receiving mechanism', function() {
-      var statbot = new Statbot(VALID_OPTIONS_HTTPS);
+      var statbot = new BasicBot(VALID_OPTIONS_HTTPS);
       var receiver = statbot.createReceivingMechanism(VALID_OPTIONS_HTTPS);
 
       // Expect the receiver implement ReceivingMechanism.
@@ -114,7 +114,7 @@ describe('Statbot', function() {
 
   describe('#createSendingMechanism', function() {
     it('should return a sending mechanism', function() {
-      var statbot = new Statbot(VALID_OPTIONS_HTTPS);
+      var statbot = new BasicBot(VALID_OPTIONS_HTTPS);
       var sender = statbot.createSendingMechanism(VALID_OPTIONS_HTTPS);
 
       // Expect the sender implement SendingMechanism.
@@ -126,7 +126,7 @@ describe('Statbot', function() {
   describe('#say', function() {
     var statbot;
     beforeEach(function() {
-      statbot = new Statbot(VALID_OPTIONS_HTTPS);
+      statbot = new BasicBot(VALID_OPTIONS_HTTPS);
       spy(statbot.sendingMechanism, 'say');
     });
 
@@ -228,7 +228,7 @@ describe('Statbot', function() {
      * @param {function} done Mocha's `done` function.
      */
     var expectToDelegateToReceiveMessage = function(eventType, statbotOptions, receivedData, done) {
-      var statbot = new Statbot(statbotOptions);
+      var statbot = new BasicBot(statbotOptions);
       statbot.on(eventType, function(res) {
         expectValidMessageObject(receivedData, res);
         done();
@@ -257,7 +257,7 @@ describe('Statbot', function() {
 
     it('should handle accepted outgoing WebHooks over HTTP by delegation', function(done) {
       expectToDelegateToReceiveMessage(
-          Statbot.EventType.MESSAGE,
+          BasicBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTP,
           VALID_ARRIVED_POST_DATA,
           done);
@@ -265,7 +265,7 @@ describe('Statbot', function() {
 
     it('should handle accepted outgoing WebHooks over HTTPS by delegation', function(done) {
       expectToDelegateToReceiveMessage(
-          Statbot.EventType.MESSAGE,
+          BasicBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTPS,
           VALID_ARRIVED_POST_DATA,
           done);
@@ -273,7 +273,7 @@ describe('Statbot', function() {
 
     it('should reject unaccepted outgoing WebHooks over HTTP by delegation', function(done) {
       expectToDelegateToReceiveMessage(
-          Statbot.EventType.INVALID_MESSAGE,
+          BasicBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTP,
           INVALID_ARRIVED_POST_DATA,
           done);
@@ -281,7 +281,7 @@ describe('Statbot', function() {
 
     it('should reject unaccepted outgoing WebHooks over HTTPS by delegation', function(done) {
       expectToDelegateToReceiveMessage(
-          Statbot.EventType.INVALID_MESSAGE,
+          BasicBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTPS,
           INVALID_ARRIVED_POST_DATA,
           done);
