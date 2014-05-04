@@ -30,15 +30,13 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-contrib-jshint": "^0.10.0",
     "grunt-jsonlint": "^1.0.4",
-    "grunt-mocha-test": "^0.10.2"
+    "grunt-mocha-test": "^0.10.2",
+    "sinon-chai": "^2.5.0"
   },
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "daemon": "^1.1.0",
-    "creationix": "^0.4.0",
-    "cli": "^0.4.5",
     "express": "^4.0.0",
     "request": "^2.34.0",
     "body-parser": "^1.0.2",

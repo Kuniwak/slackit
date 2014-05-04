@@ -2,33 +2,24 @@
 var url = require('url');
 var path = require('path');
 var fork = require('child_process').fork;
-
+var expect = require('chai').expect;
 var stub = require('sinon').stub;
-var spy = require('sinon').spy;
-var sinonChai = require("sinon-chai");
-var chai = require('chai');
-chai.use(sinonChai);
-var expect = chai.expect;
 var extend = require('util-extend');
 
-var Statbot = require('../');
+var ReceivingBot = require('../').ReceivingBot;
 
-describe('Statbot', function() {
+describe('ReceivingBot', function() {
   /**
-   * Valid options to construct the Statbot.
+   * Valid options to construct the ReceivingBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTPS = {
-    teamname: 'example',
-    channel: '#general',
-    botname: 'testbot',
-    incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
     outgoingHookURI: '/outgoing-hook',
   };
 
   /**
-   * Valid options to construct the Statbot.
+   * Valid options to construct the ReceivingBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
@@ -36,41 +27,9 @@ describe('Statbot', function() {
   }, VALID_OPTIONS_HTTPS);
 
   /**
-   * Invalid options to construct the Statbot.
+   * Invalid options to construct the ReceivingBot.
    */
   var INVALID_OPTIONS = {};
-
-  /**
-   * Default the URL to Slack server.
-   * @type {string}
-   */
-  var INCOMING_HOOK_URI = url.format({
-    protocol: 'https',
-    hostname: 'example.slack.com',
-    pathname: 'services/hooks/incoming-webhook',
-    query: { 'token': 'AAAAAAAAAAAAAAAAAAAAAAAA' },
-  });
-
-  /**
-   * Listen port of the fixture server.
-   * The server will echo the given request to the port.
-   * @see test/fixture/server.js
-   * @type {number}
-   */
-  var INCOMING_HOOK_PORT = 9000;
-
-  /**
-   * URL to the fixture server.
-   * NOTE: The protocol should use SSL.
-   * @type {string}
-   */
-  var INCOMING_HOOK_URI_FIXTURE = url.format({
-    protocol: 'http',
-    hostname: 'localhost',
-    port: INCOMING_HOOK_PORT,
-    pathname: 'services/hooks/incoming-webhook',
-    query: { 'token': 'AAAAAAAAAAAAAAAAAAAAAAAA' },
-  });
 
   /**
    * Listen port of outgoing WebHooks from the Slack server.
@@ -82,79 +41,42 @@ describe('Statbot', function() {
   describe('#constructor', function() {
     it('should throw an exception when given no options', function() {
       expect(function() {
-        new Statbot();
+        new ReceivingBot();
       }).to.throw(Error);
     });
 
     it('should throw an exception when given invalid options', function() {
       expect(function() {
-        new Statbot(INVALID_OPTIONS);
+        new ReceivingBot(INVALID_OPTIONS);
       }).to.throw(Error);
     });
 
     it('should construct the bot', function() {
-      var statbot = new Statbot(VALID_OPTIONS_HTTPS);
-      expect(statbot).to.be.instanceof(Statbot);
+      var statbot = new ReceivingBot(VALID_OPTIONS_HTTPS);
+      expect(statbot).to.be.instanceof(ReceivingBot);
     });
   });
 
 
-  describe('#createReceivingMechanism', function() {
-    it('should return a receiving mechanism', function() {
-      var statbot = new Statbot(VALID_OPTIONS_HTTPS);
-      var receiver = statbot.createReceivingMechanism(VALID_OPTIONS_HTTPS);
-
-      // Expect the receiver implement ReceivingMechanism.
-      expect(receiver).to.have.property('listen').that.is.a('function');
-      expect(receiver).to.have.property('close').that.is.a('function');
-      expect(receiver).to.have.property('on').that.is.a('function');
-    });
-  });
-
-
-  describe('#createSendingMechanism', function() {
-    it('should return a sending mechanism', function() {
-      var statbot = new Statbot(VALID_OPTIONS_HTTPS);
-      var sender = statbot.createSendingMechanism(VALID_OPTIONS_HTTPS);
-
-      // Expect the sender implement SendingMechanism.
-      expect(sender).to.have.property('say').that.is.a('function');
-    });
-  });
-
-
-  describe('#say', function() {
-    var statbot;
-    beforeEach(function() {
-      statbot = new Statbot(VALID_OPTIONS_HTTPS);
-      spy(statbot.sendingMechanism, 'say');
+  describe('#getServerMechanism', function() {
+    it('should returns a promise wrapped the HTTPS server mechanism', function(done) {
+      var statbot = new ReceivingBot(VALID_OPTIONS_HTTPS);
+      expect(statbot.getServerMechanism()).to.have.property('then')
+          .that.is.a('function');
+      statbot.getServerMechanism().then(function(server) {
+        expect(server).to.have.property('listen').that.is.a('function');
+        done();
+      });
     });
 
-    afterEach(function() {
-      statbot.sendingMechanism.say.restore();
-    });
-
-    it('should delegate to own #sendingMechanism#say when a message string was given', function() {
-      var msg = '0123456789abcdABCD @+-_!?/:"\'';
-      statbot.say(msg);
-
-      expect(statbot.sendingMechanism.say).to.have.been.calledWith(msg);
-    });
-
-    it('should delegate to own #sendingMechanism#say when a message object was given', function() {
-      var msg = {
-        text: '0123456789abcdABCD @+-_!?/:"\'',
-        channel: '#playground',
-        botname: 'statbot',
-        icon_emoji: ':ghost:',
-      };
-      statbot.say(msg);
-
-      expect(statbot.sendingMechanism.say).to.have.been.called;
-      // This test case should accept additional properties.
-      // So it expect to the properties that are included the given message
-      // object have same values.
-      expect(statbot.sendingMechanism.say).to.have.deep.property('args[0][0]').that.include(msg);
+    it('should returns a promise wrapped the HTTP server mechanism', function(done) {
+      var statbot = new ReceivingBot(VALID_OPTIONS_HTTP);
+      expect(statbot.getServerMechanism()).to.have.property('then')
+          .that.is.a('function');
+      statbot.getServerMechanism().then(function(server) {
+        expect(server).to.have.property('listen').that.is.a('function');
+        done();
+      });
     });
   });
 
@@ -219,6 +141,32 @@ describe('Statbot', function() {
       pathname: VALID_OPTIONS_HTTPS.outgoingHookURI,
     });
 
+    var outgoingHookProcess;
+    before(function(done) {
+      // Start a fixture server that will send request to the statbot.
+      outgoingHookProcess = fork(path.join(__dirname, 'fixture', 'outgoing_hook'));
+      outgoingHookProcess.on('message', function(res) {
+        if (!res || !res.ready) {
+          throw Error('Cannot start the fixture server.');
+        }
+        done();
+      });
+    });
+
+    after(function() {
+      outgoingHookProcess.kill();
+    });
+
+    // Should close the statbot after for each test.
+    var statbot;
+    afterEach(function() {
+      if (!statbot) {
+        return;
+      }
+
+      statbot.close();
+    });
+
     /**
      * Expects the specified event is fired with valid arguments.
      * @param {string} eventType Event type to test.
@@ -227,13 +175,18 @@ describe('Statbot', function() {
      * @param {Object} receivedData Post data sent by the Slack server.
      * @param {function} done Mocha's `done` function.
      */
-    var expectToDelegateToReceiveMessage = function(eventType, statbotOptions, receivedData, done) {
-      var statbot = new Statbot(statbotOptions);
+    var expectEventWasFired = function(eventType, statbotOptions, outgoingHookURI, receivedData, done) {
+      var port = url.parse(outgoingHookURI).port;
+
+      statbot = new ReceivingBot(statbotOptions);
       statbot.on(eventType, function(res) {
-        expectValidMessageObject(receivedData, res);
+        expectOutgoingHookRequest(receivedData, res);
         done();
       });
-      statbot.receivingMechanism.emit(eventType, receivedData);
+      statbot.listen(port, function() {
+        // Send a request to the statbot over the child process.
+        outgoingHookProcess.send({ url: outgoingHookURI, form: receivedData });
+      });
     };
 
     /**
@@ -244,7 +197,7 @@ describe('Statbot', function() {
      * @param {*} actual Actual parameter for the event handler.
      * @see https://{your team name}.slack.com/services/new/outgoing-webhook
      */
-    var expectValidMessageObject = function(expected, actual) {
+    var expectOutgoingHookRequest = function(expected, actual) {
       expect(actual).to.an('object');
       expect(actual).to.have.property('team_id', expected.team_id);
       expect(actual).to.have.property('channel_id', expected.channel_id);
@@ -255,34 +208,38 @@ describe('Statbot', function() {
       expect(actual).to.have.property('text', expected.text);
     };
 
-    it('should handle accepted outgoing WebHooks over HTTP by delegation', function(done) {
-      expectToDelegateToReceiveMessage(
-          Statbot.EventType.MESSAGE,
+    it('should handle accepted outgoing WebHooks over HTTP', function(done) {
+      expectEventWasFired(
+          ReceivingBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTP,
+          OUTGOING_HOOK_HTTP_URI,
           VALID_ARRIVED_POST_DATA,
           done);
     });
 
-    it('should handle accepted outgoing WebHooks over HTTPS by delegation', function(done) {
-      expectToDelegateToReceiveMessage(
-          Statbot.EventType.MESSAGE,
+    it('should handle accepted outgoing WebHooks over HTTPS', function(done) {
+      expectEventWasFired(
+          ReceivingBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTPS,
+          OUTGOING_HOOK_HTTPS_URI,
           VALID_ARRIVED_POST_DATA,
           done);
     });
 
-    it('should reject unaccepted outgoing WebHooks over HTTP by delegation', function(done) {
-      expectToDelegateToReceiveMessage(
-          Statbot.EventType.INVALID_MESSAGE,
+    it('should reject unaccepted outgoing WebHooks over HTTP', function(done) {
+      expectEventWasFired(
+          ReceivingBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTP,
+          OUTGOING_HOOK_HTTP_URI,
           INVALID_ARRIVED_POST_DATA,
           done);
     });
 
-    it('should reject unaccepted outgoing WebHooks over HTTPS by delegation', function(done) {
-      expectToDelegateToReceiveMessage(
-          Statbot.EventType.INVALID_MESSAGE,
+    it('should reject unaccepted outgoing WebHooks over HTTPS', function(done) {
+      expectEventWasFired(
+          ReceivingBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTPS,
+          OUTGOING_HOOK_HTTPS_URI,
           INVALID_ARRIVED_POST_DATA,
           done);
     });
