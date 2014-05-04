@@ -1,5 +1,9 @@
 /* jshint expr: true */
 var path = require('path');
+
+var chai = require('chai');
+var expect = chai.expect;
+
 var BotFactory = require('../lib/botfactory');
 
 describe('BotFactory', function() {
