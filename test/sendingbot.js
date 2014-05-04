@@ -2,8 +2,13 @@
 var url = require('url');
 var path = require('path');
 var fork = require('child_process').fork;
-var expect = require('chai').expect;
+
 var stub = require('sinon').stub;
+var spy = require('sinon').spy;
+var sinonChai = require("sinon-chai");
+var chai = require('chai');
+chai.use(sinonChai);
+var expect = chai.expect;
 var extend = require('util-extend');
 
 var SendingBot = require('../').SendingBot;

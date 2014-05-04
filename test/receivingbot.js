@@ -14,7 +14,6 @@ describe('ReceivingBot', function() {
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTPS = {
-    teamname: 'example',
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
     outgoingHookURI: '/outgoing-hook',
   };
@@ -181,7 +180,7 @@ describe('ReceivingBot', function() {
 
       statbot = new ReceivingBot(statbotOptions);
       statbot.on(eventType, function(res) {
-        expectOutgoingHookRequest(VALID_ARRIVED_POST_DATA, res);
+        expectOutgoingHookRequest(receivedData, res);
         done();
       });
       statbot.listen(port, function() {
@@ -211,7 +210,7 @@ describe('ReceivingBot', function() {
 
     it('should handle accepted outgoing WebHooks over HTTP', function(done) {
       expectEventWasFired(
-          Statbot.EventType.MESSAGE,
+          ReceivingBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTP,
           OUTGOING_HOOK_HTTP_URI,
           VALID_ARRIVED_POST_DATA,
@@ -220,7 +219,7 @@ describe('ReceivingBot', function() {
 
     it('should handle accepted outgoing WebHooks over HTTPS', function(done) {
       expectEventWasFired(
-          Statbot.EventType.MESSAGE,
+          ReceivingBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTPS,
           OUTGOING_HOOK_HTTPS_URI,
           VALID_ARRIVED_POST_DATA,
@@ -229,7 +228,7 @@ describe('ReceivingBot', function() {
 
     it('should reject unaccepted outgoing WebHooks over HTTP', function(done) {
       expectEventWasFired(
-          Statbot.EventType.INVALID_MESSAGE,
+          ReceivingBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTP,
           OUTGOING_HOOK_HTTP_URI,
           INVALID_ARRIVED_POST_DATA,
@@ -238,7 +237,7 @@ describe('ReceivingBot', function() {
 
     it('should reject unaccepted outgoing WebHooks over HTTPS', function(done) {
       expectEventWasFired(
-          Statbot.EventType.INVALID_MESSAGE,
+          ReceivingBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTPS,
           OUTGOING_HOOK_HTTPS_URI,
           INVALID_ARRIVED_POST_DATA,
