@@ -1,0 +1,10 @@
+{
+  "recept": {
+    "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "options": {
+      "outgoingHookURI": "/my-outgoing-hook",
+      "http": true
+    }
+  }
+}

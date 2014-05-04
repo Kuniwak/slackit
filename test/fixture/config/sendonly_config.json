@@ -1,0 +1,11 @@
+{
+  "send": {
+    "teamName": "example",
+    "botName": "testbot",
+    "incomingHookToken": "AAAAAAAAAAAAAAAAAAAAAAAA",
+
+    "options": {
+      "channel": "playground"
+    }
+  }
+}

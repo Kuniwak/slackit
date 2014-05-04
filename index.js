@@ -1,3 +1,3 @@
-var Statbot = module.exports = require('./lib/statbot');
-Statbot.ReceivingBot = require('./lib/receivingbot');
-Statbot.SendingBot = require('./lib/sendingbot');
+var Statbot = module.exports = require('./lib/basicbot');
+Statbot.ReceptBot = require('./lib/receptbot');
+Statbot.SendBot = require('./lib/sendbot');

@@ -18,7 +18,7 @@ module.exports = function(grunt) {
     },
 
     jsonlint: {
-      files: ['*.json', 'lib/**/*.json', 'lib/**/*.json'],
+      files: ['*.json', 'lib/**/*.json', 'test/**/*.json'],
     },
 
     mochaTest: {

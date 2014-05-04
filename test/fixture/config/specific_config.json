@@ -1,0 +1,19 @@
+{
+  "recept": {
+    "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "options": {
+      "outgoingHookURI": "/my-outgoing-hook",
+      "http": true
+    }
+  },
+  "send": {
+    "teamName": "example",
+    "botName": "testbot",
+    "incomingHookToken": "AAAAAAAAAAAAAAAAAAAAAAAA",
+
+    "options": {
+      "channel": "playground"
+    }
+  }
+}
