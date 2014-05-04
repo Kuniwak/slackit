@@ -24,6 +24,19 @@ describe('ReceptBot', function() {
    * Valid options to construct the ReceptBot.
    * @type {Object.<string, string>}
    */
+  var VALID_OPTIONS_HTTPS_WITH_CERTIFICATE = {
+    outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
+    outgoingHookURI: '/outgoing-hook',
+    https: {
+      key: 'test/fixture/config/ssl/key.pem',
+      cert: 'test/fixture/config/ssl/cert.pem',
+    },
+  };
+
+  /**
+   * Valid options to construct the ReceptBot.
+   * @type {Object.<string, string>}
+   */
   var VALID_OPTIONS_HTTP = extend({
     http: true,
   }, VALID_OPTIONS_HTTPS);
@@ -53,8 +66,18 @@ describe('ReceptBot', function() {
       }).to.throw(Error);
     });
 
-    it('should construct the bot', function() {
+    it('should construct the bot with HTTPS mode', function() {
       var statbot = new ReceptBot(VALID_OPTIONS_HTTPS);
+      expect(statbot).to.be.instanceof(ReceptBot);
+    });
+
+    it('should construct the bot with HTTPS mode with credential', function() {
+      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
+      expect(statbot).to.be.instanceof(ReceptBot);
+    });
+
+    it('should construct the bot with HTTP mode', function() {
+      var statbot = new ReceptBot(VALID_OPTIONS_HTTP);
       expect(statbot).to.be.instanceof(ReceptBot);
     });
   });
@@ -63,6 +86,17 @@ describe('ReceptBot', function() {
   describe('#getServerMechanism', function() {
     it('should returns a promise wrapped the HTTPS server mechanism', function(done) {
       var statbot = new ReceptBot(VALID_OPTIONS_HTTPS);
+      expect(statbot.getServerMechanism()).to.have.property('then')
+          .that.is.a('function');
+      statbot.getServerMechanism().then(function(server) {
+        expect(server).to.have.property('listen').that.is.a('function');
+        done();
+      });
+    });
+
+    it('should returns a promise wrapped the HTTPS server mechanism with the given certificate', function(done) {
+      // FIXME: we should check the given certificate was used, but I can't.
+      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
       expect(statbot.getServerMechanism()).to.have.property('then')
           .that.is.a('function');
       statbot.getServerMechanism().then(function(server) {

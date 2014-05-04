@@ -1,0 +1,10 @@
+{
+  "recept": {
+    "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX"
+  },
+  "send": {
+    "teamName": "example",
+    "botName": "testbot",
+    "incomingHookToken": "AAAAAAAAAAAAAAAAAAAAAAAA"
+  }
+}
