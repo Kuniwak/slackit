@@ -1,0 +1,19 @@
+{
+  "receiving": {
+    "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "options": {
+      "outgoingHookURI": "/my-outgoing-hook",
+      "http": true
+    }
+  },
+  "sending": {
+    "teamName": "example",
+    "botName": "testbot",
+    "incomingHookToken": "AAAAAAAAAAAAAAAAAAAAAAAA",
+
+    "options": {
+      "channel": "playground"
+    }
+  }
+}
