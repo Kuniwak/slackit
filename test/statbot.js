@@ -118,7 +118,7 @@ describe('Statbot', function() {
       var sender = statbot.createSendingMechanism(VALID_OPTIONS_HTTPS);
 
       // Expect the sender implement SendingMechanism.
-      expect(receiver).to.have.property('say').that.is.a('function');
+      expect(sender).to.have.property('say').that.is.a('function');
     });
   });
 

@@ -218,6 +218,8 @@ describe('SendingBot', function() {
 
   describe('#getIncomingHookURI', function() {
     it('should return a default incoming hook URI', function() {
+      // This spec is important because tests for #say need to be able to switch
+      // the real server to the mock server.
       var statbot = new SendingBot(VALID_OPTIONS_HTTPS);
       expect(statbot.getIncomingHookURI()).to.be.equal(INCOMING_HOOK_URI);
     });
