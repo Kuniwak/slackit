@@ -3,10 +3,16 @@ var fs = require('fs');
 var path = require('path');
 var exec = require('child_process').exec;
 
+var sinon = require('sinon');
+var spy = sinon.spy;
 var chai = require('chai');
+var sinonChai = require('sinon-chai');
+var chaiAsPromised = require('chai-as-promised');
+chai.use(sinonChai);
+chai.use(chaiAsPromised);
 var expect = chai.expect;
 
-var BIN_PATH = '../bin/bot.js';
+var BIN_PATH = '../bin/cli.js';
 var Main = require(BIN_PATH);
 
 describe('Command line interface', function() {
@@ -27,14 +33,45 @@ describe('Command line interface', function() {
   describe('Main', function() {
     var main;
     afterEach(function(done) {
-      main.getPromisedBot().then(function(bot) {
-        bot.close();
-        done();
+      if (!main) {
+        return done();
+      }
+
+      main.getPromisedBot()
+          .then(function(bot) {
+            bot.stop();
+            done();
+          }, function() {
+            done();
+          });
+    });
+
+    describe('#constructor', function() {
+      it('should be done with config file', function() {
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.json'];
+        main = new Main(argv);
+        return expect(main.getPromisedBot()).to.be.fulfilled;
+      });
+
+      it('should be failed with config file is not existed', function() {
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/nothing.json'];
+        main = new Main(argv);
+        return expect(main.getPromisedBot()).to.be.rejected;
+      });
+
+      it('should be failed with config file is not JSON', function() {
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.js'];
+        main = new Main(argv);
+        return expect(main.getPromisedBot()).to.be.rejected;
       });
     });
 
-    it('should run a bot when the instance was constructed', function() {
-      main = new Main(['node', 'bin/bot.js', '-c', 'test/fixture/config/config.json']);
+    describe('#getPromisedBot', function() {
+      it('should return a promised bot', function() {
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.json'];
+        main = new Main(argv);
+        return expect(main.getPromisedBot()).to.eventually.have.property('start').that.is.a('function');
+      });
     });
   });
 });
