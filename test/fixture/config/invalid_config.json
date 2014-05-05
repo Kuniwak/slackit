@@ -1,12 +1,6 @@
 {
   "recept": {
-    "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
-    "port": 9000,
-
-    "options": {
-      "outgoingHookURI": "/my-outgoing-hook",
-      "http": true
-    }
+    "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX"
   },
   "send": {
     "teamName": "example",

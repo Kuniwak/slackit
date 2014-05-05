@@ -1,7 +1,7 @@
 {
   "recept": {
     "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
-    "port": "9000",
+    "port": 9000,
 
     "options": {
       "outgoingHookURI": "/my-outgoing-hook",

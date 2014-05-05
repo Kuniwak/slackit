@@ -18,10 +18,12 @@ describe('BotFactory', function() {
    * @enum {string}
    */
   var CONFIG_FILE_PATH = {
-    BASIC_BOT: path.join(CONFIG_DIR_PATH, 'config.json'),
-    SPECIFIC_BOT: path.join(CONFIG_DIR_PATH, 'specific_config.json'),
-    RECEIVE_ONLY_BOT: path.join(CONFIG_DIR_PATH, 'receiveonly_config.json'),
-    SEND_ONLY_BOT: path.join(CONFIG_DIR_PATH, 'sendonly_config.json'),
+    BASIC: path.join(CONFIG_DIR_PATH, 'config.json'),
+    SPECIFIC: path.join(CONFIG_DIR_PATH, 'specific_config.json'),
+    RECEIVE_ONLY: path.join(CONFIG_DIR_PATH, 'receiveonly_config.json'),
+    SEND_ONLY: path.join(CONFIG_DIR_PATH, 'sendonly_config.json'),
+    BROKEN: path.join(CONFIG_DIR_PATH, 'broken_config.json'),
+    INVALID: path.join(CONFIG_DIR_PATH, 'invalid_config.json'),
   };
 
   /**
@@ -44,7 +46,7 @@ describe('BotFactory', function() {
 
   describe('.createByConfig', function() {
     it('should return the basic bot when the basic config was given', function() {
-      var config = require(CONFIG_FILE_PATH.BASIC_BOT);
+      var config = require(CONFIG_FILE_PATH.BASIC);
       var bot = BotFactory.createByConfig(config);
 
       expectToImplementSendOnlyBot(bot);
@@ -52,7 +54,7 @@ describe('BotFactory', function() {
     });
 
     it('should return the basic bot when the specific config was given', function() {
-      var config = require(CONFIG_FILE_PATH.SPECIFIC_BOT);
+      var config = require(CONFIG_FILE_PATH.SPECIFIC);
       var bot = BotFactory.createByConfig(config);
 
       expectToImplementSendOnlyBot(bot);
@@ -60,17 +62,31 @@ describe('BotFactory', function() {
     });
 
     it('should return the receive-only bot when the receive-only config was given', function() {
-      var config = require(CONFIG_FILE_PATH.RECEIVE_ONLY_BOT);
+      var config = require(CONFIG_FILE_PATH.RECEIVE_ONLY);
       var bot = BotFactory.createByConfig(config);
 
       expectToImplementReceiveOnlyBot(bot);
     });
 
     it('should return the send-only bot when the send-only config was given', function() {
-      var config = require(CONFIG_FILE_PATH.SEND_ONLY_BOT);
+      var config = require(CONFIG_FILE_PATH.SEND_ONLY);
       var bot = BotFactory.createByConfig(config);
 
       expectToImplementSendOnlyBot(bot);
+    });
+
+    it('should throw exception when broken config was given', function() {
+      expect(function() {
+        var config = require(CONFIG_FILE_PATH.BROKEN);
+        var bot = BotFactory.createByConfig(config);
+      }).to.throw(Error);
+    });
+
+    it('should throw exception when broken config was given', function() {
+      expect(function() {
+        var config = require(CONFIG_FILE_PATH.INVALID);
+        var bot = BotFactory.createByConfig(config);
+      }).to.throw(Error);
     });
   });
 });
