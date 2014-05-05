@@ -48,19 +48,19 @@ describe('Command line interface', function() {
 
     describe('#constructor', function() {
       it('should be done with config file', function() {
-        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.json'];
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.json', '-s'];
         main = new Main(argv);
         return expect(main.getPromisedBot()).to.be.fulfilled;
       });
 
       it('should be failed with config file is not existed', function() {
-        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/nothing.json'];
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/nothing.json', '-s'];
         main = new Main(argv);
         return expect(main.getPromisedBot()).to.be.rejected;
       });
 
       it('should be failed with config file is not JSON', function() {
-        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.js'];
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.js', '-s'];
         main = new Main(argv);
         return expect(main.getPromisedBot()).to.be.rejected;
       });
@@ -68,7 +68,7 @@ describe('Command line interface', function() {
 
     describe('#getPromisedBot', function() {
       it('should return a promised bot', function() {
-        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.json'];
+        var argv = ['node', 'bin/bot.js', '-c', 'test/fixture/config/config.json', '-s'];
         main = new Main(argv);
         return expect(main.getPromisedBot()).to.eventually.have.property('start').that.is.a('function');
       });

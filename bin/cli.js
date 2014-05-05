@@ -21,6 +21,9 @@ var BotFactory = require('../lib/botfactory');
 var Main = function(argv) {
   this.argv = argv;
   this.bot = this.getPromisedBot();
+  this.bot.then(null, function logError(err) {
+    winston.error(err.message + ':', err);
+  });
 };
 
 
@@ -42,14 +45,23 @@ Main.prototype.getPromisedOptions = function() {
     bot
       .version(packageInfo.version)
       .usage('[options]')
-      .option('-v, --verbose', 'output verbose messages')
+      .option('-v, --verbose', 'output verbose messages (it have priority over -s)')
+      .option('-s, --silent',  'suppress output messages')
       .option('-c, --config <file>', 'specify the config file', 'config/config.json')
       .parse(that.argv);
 
-    winston.setLevels(winston.config.syslog.levels);
-    if (bot.verbose) {
-      winston.level = 'debug';
-    }
+    var revertedSyslogLevels = {
+      debug: 0,
+      info: 1,
+      notice: 2,
+      warning: 3,
+      error: 4,
+      crit: 5,
+      alert: 6,
+      emerg: 7
+    };
+    winston.setLevels(revertedSyslogLevels);
+    winston.level = bot.verbose ? 'debug' : bot.silent ? 'none' : 'info';
 
     promise.resolve(bot);
   });
@@ -93,10 +105,6 @@ Main.prototype.getPromisedBot = function() {
         var bot = BotFactory.createByConfig(cfg);
         bot.start();
         return bot;
-      })
-      .then(null, function logError(err) {
-        winston.error(err.message + ':', err);
-        throw err;
       });
 };
 

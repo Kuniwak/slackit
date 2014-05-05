@@ -13,7 +13,17 @@ describe('ReceptBot', function() {
   // Hide log messages between tests
   var logLevel;
   before(function() {
-    winston.setLevels(winston.config.syslog.levels);
+    var revertedSyslogLevels = {
+      debug: 0,
+      info: 1,
+      notice: 2,
+      warning: 3,
+      error: 4,
+      crit: 5,
+      alert: 6,
+      emerg: 7
+    };
+    winston.setLevels(revertedSyslogLevels);
     winston.level = 'warn';
   });
   after(function() {
