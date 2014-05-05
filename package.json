@@ -43,6 +43,7 @@
     "pem": "^1.4.0",
     "util-extend": "^1.0.1",
     "winston": "^0.7.3",
-    "promised-io": "^0.3.4"
+    "promised-io": "^0.3.4",
+    "commander": "^2.2.0"
   }
 }
