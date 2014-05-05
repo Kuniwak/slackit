@@ -11,11 +11,20 @@ chai.use(sinonChai);
 var expect = chai.expect;
 var extend = require('util-extend');
 var winston = require('winston');
-winston.level = 'warn';
 
 var SendBot = require('../').SendBot;
 
 describe('SendBot', function() {
+  // Hide log messages between tests
+  var logLevel;
+  before(function() {
+    winston.setLevels(winston.config.syslog.levels);
+    winston.level = 'warn';
+  });
+  after(function() {
+    logLevel = winston.level;
+  });
+
   /**
    * Valid options to construct the SendBot.
    * @type {Object.<string, string>}

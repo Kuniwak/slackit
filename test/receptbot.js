@@ -6,11 +6,20 @@ var expect = require('chai').expect;
 var stub = require('sinon').stub;
 var extend = require('util-extend');
 var winston = require('winston');
-winston.level = 'warn';
 
 var ReceptBot = require('../').ReceptBot;
 
 describe('ReceptBot', function() {
+  // Hide log messages between tests
+  var logLevel;
+  before(function() {
+    winston.setLevels(winston.config.syslog.levels);
+    winston.level = 'warn';
+  });
+  after(function() {
+    logLevel = winston.level;
+  });
+
   /**
    * Listen port of outgoing WebHooks from the Slack server.
    * @type {number}
