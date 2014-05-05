@@ -341,7 +341,7 @@ describe('BasicBot', function() {
       expect(actual).to.have.property('text', expected.text);
     };
 
-    it('should handle accepted outgoing WebHooks over HTTP by delegation', function(done) {
+    it('should delegate handling valid message from outgoing WebHooks over HTTP to own #receivingMechanism', function(done) {
       expectToDelegateToReceiveMessage(
           BasicBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTP,
@@ -349,7 +349,7 @@ describe('BasicBot', function() {
           done);
     });
 
-    it('should handle accepted outgoing WebHooks over HTTPS by delegation', function(done) {
+    it('should delegate handling valid message from outgoing WebHooks over HTTPS to own #receivingMechanism', function(done) {
       expectToDelegateToReceiveMessage(
           BasicBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTPS,
@@ -357,7 +357,7 @@ describe('BasicBot', function() {
           done);
     });
 
-    it('should reject unaccepted outgoing WebHooks over HTTP by delegation', function(done) {
+    it('should delegate handling invalid message from outgoing WebHooks over HTTP to own #receivingMechanism', function(done) {
       expectToDelegateToReceiveMessage(
           BasicBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTP,
@@ -365,7 +365,7 @@ describe('BasicBot', function() {
           done);
     });
 
-    it('should reject unaccepted outgoing WebHooks over HTTPS by delegation', function(done) {
+    it('should delegate handling invalid message from outgoing WebHooks over HTTPS to own #receivingMechanism', function(done) {
       expectToDelegateToReceiveMessage(
           BasicBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTPS,
