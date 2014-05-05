@@ -12,26 +12,31 @@ var ReceptBot = require('../').ReceptBot;
 
 describe('ReceptBot', function() {
   /**
+   * Listen port of outgoing WebHooks from the Slack server.
+   * @type {number}
+   */
+  var OUTGOING_HOOK_PORT = 9000;
+
+  /**
    * Valid options to construct the ReceptBot.
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTPS = {
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
     outgoingHookURI: '/outgoing-hook',
+    port: OUTGOING_HOOK_PORT,
   };
 
   /**
    * Valid options to construct the ReceptBot.
    * @type {Object.<string, string>}
    */
-  var VALID_OPTIONS_HTTPS_WITH_CERTIFICATE = {
-    outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookURI: '/outgoing-hook',
+  var VALID_OPTIONS_HTTPS_WITH_CERTIFICATE = extend({
     https: {
       key: 'test/fixture/config/ssl/key.pem',
       cert: 'test/fixture/config/ssl/cert.pem',
     },
-  };
+  }, VALID_OPTIONS_HTTPS);
 
   /**
    * Valid options to construct the ReceptBot.
@@ -46,49 +51,76 @@ describe('ReceptBot', function() {
    */
   var INVALID_OPTIONS = {};
 
-  /**
-   * Listen port of outgoing WebHooks from the Slack server.
-   * @type {number}
-   */
-  var OUTGOING_HOOK_PORT = 9001;
-
-
   describe('#constructor', function() {
+    it('should construct the bot with HTTPS mode', function() {
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTPS);
+      expect(receptbot).to.be.instanceof(ReceptBot);
+    });
+
+    it('should construct the bot with HTTPS mode with certificate', function() {
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
+      expect(receptbot).to.be.instanceof(ReceptBot);
+    });
+
+    it('should construct the bot with HTTPS mode without outgoingHookURI', function() {
+      var validOptions = extend({}, VALID_OPTIONS_HTTP);
+      delete validOptions.outgoingHookURI;
+
+      var receptbot = new ReceptBot(validOptions);
+      expect(receptbot).to.be.instanceof(ReceptBot);
+    });
+
+    it('should construct the bot with HTTP mode', function() {
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTP);
+      expect(receptbot).to.be.instanceof(ReceptBot);
+    });
+
     it('should throw an exception when given no options', function() {
       expect(function() {
         new ReceptBot();
       }).to.throw(Error);
     });
 
-    it('should throw an exception when given invalid options', function() {
+    it('should throw an exception when given no outgoingHookToken', function() {
       expect(function() {
-        new ReceptBot(INVALID_OPTIONS);
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
+        delete invalidOptions.outgoingHookToken;
+        new ReceptBot(invalidOptions);
       }).to.throw(Error);
     });
 
-    it('should construct the bot with HTTPS mode', function() {
-      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS);
-      expect(statbot).to.be.instanceof(ReceptBot);
+    it('should throw an exception when given no port', function() {
+      expect(function() {
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
+        delete invalidOptions.port;
+        new ReceptBot(invalidOptions);
+      }).to.throw(Error);
     });
+  });
 
-    it('should construct the bot with HTTPS mode with credential', function() {
-      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
-      expect(statbot).to.be.instanceof(ReceptBot);
+
+  describe('#start', function() {
+    it('should be implemented', function() {
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTPS);
+      expect(receptbot).to.have.property('start').that.is.a('function');
     });
+  });
 
-    it('should construct the bot with HTTP mode', function() {
-      var statbot = new ReceptBot(VALID_OPTIONS_HTTP);
-      expect(statbot).to.be.instanceof(ReceptBot);
+
+  describe('#stop', function() {
+    it('should be implemented', function() {
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTPS);
+      expect(receptbot).to.have.property('stop').that.is.a('function');
     });
   });
 
 
   describe('#getServerMechanism', function() {
     it('should returns a promise wrapped the HTTPS server mechanism', function(done) {
-      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS);
-      expect(statbot.getServerMechanism()).to.have.property('then')
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTPS);
+      expect(receptbot.getServerMechanism()).to.have.property('then')
           .that.is.a('function');
-      statbot.getServerMechanism().then(function(server) {
+      receptbot.getServerMechanism().then(function(server) {
         expect(server).to.have.property('listen').that.is.a('function');
         done();
       });
@@ -96,20 +128,20 @@ describe('ReceptBot', function() {
 
     it('should returns a promise wrapped the HTTPS server mechanism with the given certificate', function(done) {
       // FIXME: we should check the given certificate was used, but I can't.
-      var statbot = new ReceptBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
-      expect(statbot.getServerMechanism()).to.have.property('then')
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
+      expect(receptbot.getServerMechanism()).to.have.property('then')
           .that.is.a('function');
-      statbot.getServerMechanism().then(function(server) {
+      receptbot.getServerMechanism().then(function(server) {
         expect(server).to.have.property('listen').that.is.a('function');
         done();
       });
     });
 
     it('should returns a promise wrapped the HTTP server mechanism', function(done) {
-      var statbot = new ReceptBot(VALID_OPTIONS_HTTP);
-      expect(statbot.getServerMechanism()).to.have.property('then')
+      var receptbot = new ReceptBot(VALID_OPTIONS_HTTP);
+      expect(receptbot.getServerMechanism()).to.have.property('then')
           .that.is.a('function');
-      statbot.getServerMechanism().then(function(server) {
+      receptbot.getServerMechanism().then(function(server) {
         expect(server).to.have.property('listen').that.is.a('function');
         done();
       });
@@ -142,16 +174,8 @@ describe('ReceptBot', function() {
      * @const
      * @see https://{your team name}.slack.com/services/new/outgoing-webhook
      */
-    var INVALID_ARRIVED_POST_DATA = {
-      token: 'INVALID_INVALID_INVALID_INVALID_',
-      team_id: 'T0123',
-      channel_id: 'C123456789',
-      channel_name: 'playground',
-      timestamp: String(new Date('2000/1/1').getTime()),
-      user_id: 'U0123456789',
-      user_name: 'Foo',
-      text: '0123456789abcdABCD @+-_!?/:"\'',
-    };
+    var INVALID_ARRIVED_POST_DATA = extend({}, VALID_ARRIVED_POST_DATA);
+    INVALID_ARRIVED_POST_DATA.token = 'INVALID_INVALID_INVALID_INVALID_';
 
     /**
      * URI where the Slack server will send to new messages with HTTP.
@@ -179,7 +203,7 @@ describe('ReceptBot', function() {
 
     var outgoingHookProcess;
     before(function(done) {
-      // Start a fixture server that will send request to the statbot.
+      // Start a fixture server that will send request to the receptbot.
       outgoingHookProcess = fork(path.join(__dirname, 'fixture', 'outgoing_hook'));
       outgoingHookProcess.on('message', function(res) {
         if (!res || !res.ready) {
@@ -193,34 +217,32 @@ describe('ReceptBot', function() {
       outgoingHookProcess.kill();
     });
 
-    // Should close the statbot after for each test.
-    var statbot;
+    // Should close the receptbot after for each test.
+    var receptbot;
     afterEach(function() {
-      if (!statbot) {
+      if (!receptbot) {
         return;
       }
 
-      statbot.close();
+      receptbot.close();
     });
 
     /**
      * Expects the specified event is fired with valid arguments.
      * @param {string} eventType Event type to test.
-     * @param {Object} statbotOptions Options for the statbot.
+     * @param {Object} receptbotOptions Options for the receptbot.
      * @param {string} outgoingHookURI URI to receive outgoing WebHooks.
      * @param {Object} receivedData Post data sent by the Slack server.
      * @param {function} done Mocha's `done` function.
      */
-    var expectEventWasFired = function(eventType, statbotOptions, outgoingHookURI, receivedData, done) {
-      var port = url.parse(outgoingHookURI).port;
-
-      statbot = new ReceptBot(statbotOptions);
-      statbot.on(eventType, function(res) {
+    var expectEventWasFired = function(eventType, receptbotOptions, outgoingHookURI, receivedData, done) {
+      receptbot = new ReceptBot(receptbotOptions);
+      receptbot.on(eventType, function(res) {
         expectOutgoingHookRequest(receivedData, res);
         done();
       });
-      statbot.listen(port, function() {
-        // Send a request to the statbot over the child process.
+      receptbot.listen(function() {
+        // Send a request to the receptbot over the child process.
         outgoingHookProcess.send({ url: outgoingHookURI, form: receivedData });
       });
     };
