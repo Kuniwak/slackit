@@ -9,6 +9,8 @@ var Promise = require('promised-io/promise').Promise;
 
 var BotFactory = require('../lib/botfactory');
 
+
+
 /**
  * Customizable entry point to start the bot.
  * You can override methods to use your custom bot.
@@ -41,9 +43,10 @@ Main.prototype.getPromisedOptions = function() {
       .version(packageInfo.version)
       .usage('[options]')
       .option('-v, --verbose', 'output verbose messages')
-      .option('-c, --config <file>',  'specify the config file', 'config/config.json')
+      .option('-c, --config <file>', 'specify the config file', 'config/config.json')
       .parse(that.argv);
 
+    winston.setLevels(winston.config.syslog.levels);
     if (bot.verbose) {
       winston.level = 'debug';
     }
@@ -61,24 +64,22 @@ Main.prototype.getPromisedOptions = function() {
  * @protected
  */
 Main.prototype.getPromisedConfig = function() {
-  return this.getPromisedOptions().then(function(opts) {
-    var configPath = path.join(__dirname, '..', opts.config);
-    var promisedStat = promisedFs.stat(configPath);
+  return this.getPromisedOptions()
+      .then(function loadConfig(opts) {
+        var configPath = path.join(__dirname, '..', opts.config);
+        var promise = new Promise();
 
-    return promisedStat.then(function(stat) {
-      var promise = new Promise();
-
-      if (path.extname(configPath).toLowerCase() !== '.json') {
-        throw Error('Config file should be as be JSON but come: ' + configPath);
-      }
-
-      if (!stat.isFile()) {
-        throw Error('Cannot read config file: ' + configPath);
-      }
-
-      return require(configPath);
-    });
-  });
+        if (path.extname(configPath).toLowerCase() !== '.json') {
+          throw Error('Config file should be as be JSON but come: ' + configPath);
+        }
+        return require(configPath);
+      })
+      .then(null, function handleENOENT(err) {
+        if (err.code === 'ENOENT') {
+          throw Error('Cannot read config file: ' + err.message);
+        }
+        throw err;
+      });
 };
 
 
@@ -87,11 +88,16 @@ Main.prototype.getPromisedConfig = function() {
  * @return {PromiseLike.<BotLike>} Promised bot.
  */
 Main.prototype.getPromisedBot = function() {
-  return this.bot ? this.bot : this.getPromisedConfig().then(function(cfg) {
-    var bot = BotFactory.createByConfig(cfg);
-    bot.start();
-    return bot;
-  });
+  return this.bot ? this.bot : this.getPromisedConfig()
+      .then(function createBot(cfg) {
+        var bot = BotFactory.createByConfig(cfg);
+        bot.start();
+        return bot;
+      })
+      .then(null, function logError(err) {
+        winston.error(err.message + ':', err);
+        throw err;
+      });
 };
 
 
