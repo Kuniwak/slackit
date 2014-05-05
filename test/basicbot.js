@@ -15,32 +15,6 @@ var BasicBot = require('../');
 
 describe('BasicBot', function() {
   /**
-   * Valid options to construct the BasicBot.
-   * @type {Object.<string, string>}
-   */
-  var VALID_OPTIONS_HTTPS = {
-    teamname: 'example',
-    channel: '#general',
-    botname: 'testbot',
-    incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
-    outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookURI: '/outgoing-hook',
-  };
-
-  /**
-   * Valid options to construct the BasicBot.
-   * @type {Object.<string, string>}
-   */
-  var VALID_OPTIONS_HTTP = extend({
-    http: true,
-  }, VALID_OPTIONS_HTTPS);
-
-  /**
-   * Invalid options to construct the BasicBot.
-   */
-  var INVALID_OPTIONS = {};
-
-  /**
    * Default the URL to Slack server.
    * @type {string}
    */
@@ -78,23 +52,119 @@ describe('BasicBot', function() {
    */
   var OUTGOING_HOOK_PORT = 9001;
 
+  /**
+   * Valid options to construct the BasicBot.
+   * @type {Object.<string, string>}
+   */
+  var VALID_OPTIONS_HTTPS = {
+    teamname: 'example',
+    channel: '#general',
+    botname: 'testbot',
+    port: OUTGOING_HOOK_PORT,
+    incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
+    outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
+    outgoingHookURI: '/outgoing-hook',
+  };
+
+  /**
+   * Valid options to construct the ReceptBot.
+   * @type {Object.<string, string>}
+   */
+  var VALID_OPTIONS_HTTPS_WITH_CERTIFICATE = extend({
+    https: {
+      key: 'test/fixture/config/ssl/key.pem',
+      cert: 'test/fixture/config/ssl/cert.pem',
+    },
+  }, VALID_OPTIONS_HTTPS);
+
+  /**
+   * Valid options to construct the BasicBot.
+   * @type {Object.<string, string>}
+   */
+  var VALID_OPTIONS_HTTP = extend({
+    http: true,
+  }, VALID_OPTIONS_HTTPS);
+
 
   describe('#constructor', function() {
+    it('should construct the bot with HTTPS mode', function() {
+      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS);
+      expect(basicbot).to.be.instanceof(BasicBot);
+    });
+
+    it('should construct the bot with HTTPS mode with certificate', function() {
+      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
+      expect(basicbot).to.be.instanceof(BasicBot);
+    });
+
+    it('should construct the bot with HTTPS mode with no outgoingHookURI', function() {
+      var validOptions = extend({}, VALID_OPTIONS_HTTP);
+      delete validOptions.outgoingHookURI;
+
+      var basicbot = new BasicBot(validOptions);
+      expect(basicbot).to.be.instanceof(BasicBot);
+    });
+
+    it('should construct the bot with HTTPS mode with no channel', function() {
+      var validOptions = extend({}, VALID_OPTIONS_HTTPS);
+      delete validOptions.channel;
+
+      var basicbot = new BasicBot(validOptions);
+      expect(basicbot).to.be.instanceof(BasicBot);
+    });
+
+    it('should construct the bot with HTTP mode', function() {
+      var basicbot = new BasicBot(VALID_OPTIONS_HTTP);
+      expect(basicbot).to.be.instanceof(BasicBot);
+    });
+
     it('should throw an exception when given no options', function() {
       expect(function() {
         new BasicBot();
       }).to.throw(Error);
     });
 
-    it('should throw an exception when given invalid options', function() {
+    it('should throw an exception when given no outgoingHookToken', function() {
       expect(function() {
-        new BasicBot(INVALID_OPTIONS);
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
+        delete invalidOptions.outgoingHookToken;
+        new BasicBot(invalidOptions);
       }).to.throw(Error);
     });
 
-    it('should construct the bot', function() {
-      var statbot = new BasicBot(VALID_OPTIONS_HTTPS);
-      expect(statbot).to.be.instanceof(BasicBot);
+    it('should throw an exception when given no port', function() {
+      expect(function() {
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
+        delete invalidOptions.port;
+        new BasicBot(invalidOptions);
+      }).to.throw(Error);
+    });
+
+    it('should throw an exception when given no incomingHookToken', function() {
+      expect(function() {
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
+        delete invalidOptions.incomingHookToken;
+
+        new BasicBot(invalidOptions);
+      }).to.throw(Error);
+    });
+
+    it('should throw an exception when given no teamname', function() {
+      expect(function() {
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
+        delete invalidOptions.teamname;
+
+        new BasicBot(invalidOptions);
+      }).to.throw(Error);
+    });
+
+    it('should throw an exception when given no botname', function() {
+      expect(function() {
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
+        delete invalidOptions.botname;
+
+        new BasicBot(invalidOptions);
+      }).to.throw(Error);
     });
   });
 
@@ -155,6 +225,22 @@ describe('BasicBot', function() {
       // So it expect to the properties that are included the given message
       // object have same values.
       expect(statbot.sendingMechanism.say).to.have.deep.property('args[0][0]').that.include(msg);
+    });
+  });
+
+
+  describe('#start', function() {
+    it('should be implemented', function() {
+      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS);
+      expect(basicbot).to.have.property('start').that.is.a('function');
+    });
+  });
+
+
+  describe('#stop', function() {
+    it('should be implemented', function() {
+      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS);
+      expect(basicbot).to.have.property('stop').that.is.a('function');
     });
   });
 

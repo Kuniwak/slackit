@@ -1,0 +1,5 @@
+{
+    "options": {
+      "outgoingHookURI": "/my-outgoing-hook",
+      "http": true
+    }

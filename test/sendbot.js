@@ -11,16 +11,25 @@ chai.use(sinonChai);
 var expect = chai.expect;
 var extend = require('util-extend');
 var winston = require('winston');
-winston.level = 'warn';
 
 var SendBot = require('../').SendBot;
 
 describe('SendBot', function() {
+  // Hide log messages between tests
+  var logLevel;
+  before(function() {
+    winston.setLevels(winston.config.syslog.levels);
+    winston.level = 'warn';
+  });
+  after(function() {
+    logLevel = winston.level;
+  });
+
   /**
    * Valid options to construct the SendBot.
    * @type {Object.<string, string>}
    */
-  var VALID_OPTIONS_HTTPS = {
+  var VALID_OPTION = {
     teamname: 'example',
     channel: '#general',
     botname: 'testbot',
@@ -33,12 +42,7 @@ describe('SendBot', function() {
    */
   var VALID_OPTIONS_HTTP = extend({
     http: true,
-  }, VALID_OPTIONS_HTTPS);
-
-  /**
-   * Invalid options to construct the SendBot.
-   */
-  var INVALID_OPTIONS = {};
+  }, VALID_OPTION);
 
   /**
    * Default the URL to Slack server.
@@ -92,21 +96,66 @@ describe('SendBot', function() {
 
 
   describe('#constructor', function() {
+    it('should construct the bot', function() {
+      var sendbot = new SendBot(VALID_OPTION);
+      expect(sendbot).to.be.instanceof(SendBot);
+    });
+
+    it('should construct the bot with no channel', function() {
+      var validOptions = extend({}, VALID_OPTION);
+      delete validOptions.channel;
+
+      var sendbot = new SendBot(validOptions);
+      expect(sendbot).to.be.instanceof(SendBot);
+    });
+
     it('should throw an exception when given no options', function() {
       expect(function() {
         new SendBot();
       }).to.throw(Error);
     });
 
-    it('should throw an exception when given invalid options', function() {
+    it('should throw an exception when given no incomingHookToken', function() {
       expect(function() {
-        new SendBot(INVALID_OPTIONS);
+        var invalidOptions = extend({}, VALID_OPTION);
+        delete invalidOptions.incomingHookToken;
+
+        new SendBot(invalidOptions);
       }).to.throw(Error);
     });
 
-    it('should construct the bot', function() {
-      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
-      expect(statbot).to.be.instanceof(SendBot);
+    it('should throw an exception when given no teamname', function() {
+      expect(function() {
+        var invalidOptions = extend({}, VALID_OPTION);
+        delete invalidOptions.teamname;
+
+        new SendBot(invalidOptions);
+      }).to.throw(Error);
+    });
+
+    it('should throw an exception when given no botname', function() {
+      expect(function() {
+        var invalidOptions = extend({}, VALID_OPTION);
+        delete invalidOptions.botname;
+
+        new SendBot(invalidOptions);
+      }).to.throw(Error);
+    });
+  });
+
+
+  describe('#start', function() {
+    it('should be implemented', function() {
+      var sendbot = new SendBot(VALID_OPTION);
+      expect(sendbot).to.have.property('start').that.is.a('function');
+    });
+  });
+
+
+  describe('#stop', function() {
+    it('should be implemented', function() {
+      var sendbot = new SendBot(VALID_OPTION);
+      expect(sendbot).to.have.property('stop').that.is.a('function');
     });
   });
 
@@ -162,16 +211,16 @@ describe('SendBot', function() {
     it('should call getIncomingHookURI to get an incoming WebHooks URI', function() {
       // This behavior is necessary because tests for `#say` expect to be able
       // to stub `#getIncomingHookURI`. This stubbing make tests reality.
-      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
-      statbot.say('test');
-      expect(statbot.getIncomingHookURI).to.have.property('called').that.is.true;
+      var sendbot = new SendBot(VALID_OPTION);
+      sendbot.say('test');
+      expect(sendbot.getIncomingHookURI).to.have.property('called').that.is.true;
     });
 
     it('should send a message by given a text (#general should be used)', function(done) {
       var msg = '0123456789abcdABCD @+-_!?/:"\'';
-      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
+      var sendbot = new SendBot(VALID_OPTION);
 
-      statbot.say(msg, function(err, response, jsonBody) {
+      sendbot.say(msg, function(err, response, jsonBody) {
         // Use #general channel as default.
         var expected = {
           text: msg,
@@ -186,9 +235,9 @@ describe('SendBot', function() {
       var msgObj = {
         text: '0123456789abcdABCD @+-_!?/:"\''
       };
-      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
+      var sendbot = new SendBot(VALID_OPTION);
 
-      statbot.say(msgObj, function(err, response, jsonBody) {
+      sendbot.say(msgObj, function(err, response, jsonBody) {
         // Use #general channel as default.
         var expected = {
           text: msgObj.text,
@@ -203,12 +252,12 @@ describe('SendBot', function() {
       var msgObj = {
         text: '0123456789abcdABCD @+-_!?/:"\'',
         channel: '#playground',
-        botname: 'statbot',
+        botname: 'sendbot',
         icon_emoji: ':ghost:',
       };
-      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
+      var sendbot = new SendBot(VALID_OPTION);
 
-      statbot.say(msgObj, function(err, response, jsonBody) {
+      sendbot.say(msgObj, function(err, response, jsonBody) {
         // Use #general channel as default.
         var expected = msgObj;
         expectMsgObj(expected, jsonBody);
@@ -222,8 +271,8 @@ describe('SendBot', function() {
     it('should return a default incoming hook URI', function() {
       // This spec is important because tests for #say need to be able to switch
       // the real server to the mock server.
-      var statbot = new SendBot(VALID_OPTIONS_HTTPS);
-      expect(statbot.getIncomingHookURI()).to.be.equal(INCOMING_HOOK_URI);
+      var sendbot = new SendBot(VALID_OPTION);
+      expect(sendbot.getIncomingHookURI()).to.be.equal(INCOMING_HOOK_URI);
     });
   });
 });
