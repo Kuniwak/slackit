@@ -31,7 +31,8 @@
     "grunt-contrib-jshint": "^0.10.0",
     "grunt-jsonlint": "^1.0.4",
     "grunt-mocha-test": "^0.10.2",
-    "sinon-chai": "^2.5.0"
+    "sinon-chai": "^2.5.0",
+    "chai-as-promised": "^4.1.1"
   },
   "directories": {
     "test": "test"
