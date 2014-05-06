@@ -1,14 +1,15 @@
 {
-  "name": "statbot-slack",
+  "name": "slackit",
   "version": "0.0.0",
-  "description": "Show daily statistics for Slack",
-  "main": "statbot.js",
+  "description": "Slackit is the bot framefork for Slack",
+  "main": "index.js",
+  "bin": "bin/cli.js",
   "scripts": {
     "test": "mocha -R spec"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/OrgaChem/slack-statbot"
+    "url": "https://github.com/OrgaChem/slackit"
   },
   "keywords": [
     "slack",
@@ -17,15 +18,13 @@
   "author": "OrgaChem",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/OrgaChem/slack-statbot/issues"
+    "url": "https://github.com/OrgaChem/slackit/issues"
   },
-  "homepage": "https://github.com/OrgaChem/slack-statbot",
+  "homepage": "https://github.com/OrgaChem/slackit",
   "devDependencies": {
     "mocha": "^1.18.2",
     "chai": "^1.9.1",
-    "supertest": "^0.11.0",
     "sinon": "^1.9.1",
-    "superagent": "^0.17.0",
     "grunt": "^0.4.4",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-contrib-jshint": "^0.10.0",
