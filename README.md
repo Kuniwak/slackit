@@ -1,6 +1,6 @@
 Slackit - the bot framework for Slack
 =====================================
-[![Build Status](https://secure.travis-ci.org/OrgaChem/slack-statbot.svg?branch=master)](https://travis-ci.org/OrgaChem/slack-statbot)
+[![Build Status](https://secure.travis-ci.org/OrgaChem/slackit.svg?branch=master)](https://travis-ci.org/OrgaChem/slackit)
 [![npm version](https://badge.fury.io/js/slackit.svg)](http://badge.fury.io/js/slackit)
 
 Slackit is the flexible and well-tested bot framework for Slack.
