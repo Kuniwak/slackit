@@ -171,8 +171,8 @@ describe('BasicBot', function() {
 
   describe('#createReceivingMechanism', function() {
     it('should return a receiving mechanism', function() {
-      var statbot = new BasicBot(VALID_OPTIONS_HTTPS);
-      var receiver = statbot.createReceivingMechanism(VALID_OPTIONS_HTTPS);
+      var bot = new BasicBot(VALID_OPTIONS_HTTPS);
+      var receiver = bot.createReceivingMechanism(VALID_OPTIONS_HTTPS);
 
       // Expect the receiver implement ReceivingMechanism.
       expect(receiver).to.have.property('listen').that.is.a('function');
@@ -184,8 +184,8 @@ describe('BasicBot', function() {
 
   describe('#createSendingMechanism', function() {
     it('should return a sending mechanism', function() {
-      var statbot = new BasicBot(VALID_OPTIONS_HTTPS);
-      var sender = statbot.createSendingMechanism(VALID_OPTIONS_HTTPS);
+      var bot = new BasicBot(VALID_OPTIONS_HTTPS);
+      var sender = bot.createSendingMechanism(VALID_OPTIONS_HTTPS);
 
       // Expect the sender implement SendingMechanism.
       expect(sender).to.have.property('say').that.is.a('function');
@@ -194,37 +194,37 @@ describe('BasicBot', function() {
 
 
   describe('#say', function() {
-    var statbot;
+    var bot;
     beforeEach(function() {
-      statbot = new BasicBot(VALID_OPTIONS_HTTPS);
-      stub(statbot.sendingMechanism, 'say');
+      bot = new BasicBot(VALID_OPTIONS_HTTPS);
+      stub(bot.sendingMechanism, 'say');
     });
 
     afterEach(function() {
-      statbot.sendingMechanism.say.restore();
+      bot.sendingMechanism.say.restore();
     });
 
     it('should delegate to own #sendingMechanism#say when a message string was given', function() {
       var msg = '0123456789abcdABCD @+-_!?/:"\'';
-      statbot.say(msg);
+      bot.say(msg);
 
-      expect(statbot.sendingMechanism.say).to.have.been.calledWith(msg);
+      expect(bot.sendingMechanism.say).to.have.been.calledWith(msg);
     });
 
     it('should delegate to own #sendingMechanism#say when a message object was given', function() {
       var msg = {
         text: '0123456789abcdABCD @+-_!?/:"\'',
         channel: '#playground',
-        botname: 'statbot',
+        botname: 'bot',
         icon_emoji: ':ghost:',
       };
-      statbot.say(msg);
+      bot.say(msg);
 
-      expect(statbot.sendingMechanism.say).to.have.been.called;
+      expect(bot.sendingMechanism.say).to.have.been.called;
       // This test case should accept additional properties.
       // So it expect to the properties that are included the given message
       // object have same values.
-      expect(statbot.sendingMechanism.say).to.have.deep.property('args[0][0]').that.include(msg);
+      expect(bot.sendingMechanism.say).to.have.deep.property('args[0][0]').that.include(msg);
     });
   });
 
@@ -308,18 +308,18 @@ describe('BasicBot', function() {
     /**
      * Expects the specified event is fired with valid arguments.
      * @param {string} eventType Event type to test.
-     * @param {Object} statbotOptions Options for the statbot.
+     * @param {Object} botOptions Options for the bot.
      * @param {string} outgoingHookURI URI to receive outgoing WebHooks.
      * @param {Object} receivedData Post data sent by the Slack server.
      * @param {function} done Mocha's `done` function.
      */
-    var expectToDelegateToReceiveMessage = function(eventType, statbotOptions, receivedData, done) {
-      var statbot = new BasicBot(statbotOptions);
-      statbot.on(eventType, function(res) {
+    var expectToDelegateToReceiveMessage = function(eventType, botOptions, receivedData, done) {
+      var bot = new BasicBot(botOptions);
+      bot.on(eventType, function(res) {
         expectValidMessageObject(receivedData, res);
         done();
       });
-      statbot.receivingMechanism.emit(eventType, receivedData);
+      bot.receivingMechanism.emit(eventType, receivedData);
     };
 
     /**
