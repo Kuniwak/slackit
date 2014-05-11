@@ -1,11 +1,6 @@
 {
   "recept": {
     "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
-    "port": 9000,
-
-    "options": {
-      "outgoingHookURI": "/my-outgoing-hook",
-      "http": true
-    }
+    "outgoingHookURI": "https://localhost:9000/outgoing-hook"
   }
 }
