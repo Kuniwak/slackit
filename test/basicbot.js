@@ -47,12 +47,6 @@ describe('BasicBot', function() {
   });
 
   /**
-   * Listen port of outgoing WebHooks from the Slack server.
-   * @type {number}
-   */
-  var OUTGOING_HOOK_PORT = 9001;
-
-  /**
    * Valid options to construct the BasicBot.
    * @type {Object.<string, string>}
    */
@@ -60,10 +54,9 @@ describe('BasicBot', function() {
     teamname: 'example',
     channel: '#general',
     botname: 'testbot',
-    port: OUTGOING_HOOK_PORT,
     incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookURI: '/outgoing-hook',
+    outgoingHookURI: 'https://localhost:9001/outgoing-hook',
   };
 
   /**
@@ -82,7 +75,7 @@ describe('BasicBot', function() {
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
-    http: true,
+    outgoingHookURI: 'http://localhost:9001/outgoing-hook',
   }, VALID_OPTIONS_HTTPS);
 
 
@@ -280,30 +273,6 @@ describe('BasicBot', function() {
       user_name: 'Foo',
       text: '0123456789abcdABCD @+-_!?/:"\'',
     };
-
-    /**
-     * URI where the Slack server will send to new messages with HTTP.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTP_URI =  url.format({
-      protocol: 'http',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTP.outgoingHookURI,
-    });
-
-    /**
-     * URI where the Slack server will send to new messages with HTTPS.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTPS_URI = url.format({
-      protocol: 'https',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTPS.outgoingHookURI,
-    });
 
     /**
      * Expects the specified event is fired with valid arguments.

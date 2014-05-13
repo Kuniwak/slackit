@@ -18,7 +18,7 @@ describe('BotFactory', function() {
    * @enum {string}
    */
   var CONFIG_FILE_PATH = {
-    BASIC: path.join(CONFIG_DIR_PATH, 'config.json'),
+    BASIC: path.join(CONFIG_DIR_PATH, 'basic_https_config.json'),
     BASIC_HTTP: path.join(CONFIG_DIR_PATH, 'basic_http_config.json'),
     SPECIFIC: path.join(CONFIG_DIR_PATH, 'specific_config.json'),
     RECEIVE_ONLY: path.join(CONFIG_DIR_PATH, 'receiveonly_config.json'),
