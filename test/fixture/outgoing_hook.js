@@ -1,4 +1,5 @@
 var request = require('request');
+var http = require('http');
 
 // Send the request if the parent process request it.
 process.on('message', function(data) {
@@ -6,7 +7,7 @@ process.on('message', function(data) {
     url: data.url,
     form: data.form,
     rejectUnauthorized: false,
-  });
+  }).on('error', function(err) { console.log(err, data); });
 });
 
 // Send a ready event to parent process.

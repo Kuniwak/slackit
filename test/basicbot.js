@@ -47,12 +47,6 @@ describe('BasicBot', function() {
   });
 
   /**
-   * Listen port of outgoing WebHooks from the Slack server.
-   * @type {number}
-   */
-  var OUTGOING_HOOK_PORT = 9001;
-
-  /**
    * Valid options to construct the BasicBot.
    * @type {Object.<string, string>}
    */
@@ -60,10 +54,9 @@ describe('BasicBot', function() {
     teamname: 'example',
     channel: '#general',
     botname: 'testbot',
-    port: OUTGOING_HOOK_PORT,
     incomingHookToken: 'AAAAAAAAAAAAAAAAAAAAAAAA',
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookURI: '/outgoing-hook',
+    outgoingHookURI: 'https://localhost:9001/outgoing-hook',
   };
 
   /**
@@ -82,40 +75,28 @@ describe('BasicBot', function() {
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
-    http: true,
+    outgoingHookURI: 'http://localhost:9001/outgoing-hook',
   }, VALID_OPTIONS_HTTPS);
 
 
   describe('#constructor', function() {
     it('should construct the bot with HTTPS mode', function() {
-      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(VALID_OPTIONS_HTTPS);
     });
 
     it('should construct the bot with HTTPS mode with certificate', function() {
-      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
-      expect(basicbot).to.be.instanceof(BasicBot);
-    });
-
-    it('should construct the bot with HTTPS mode with no outgoingHookURI', function() {
-      var validOptions = extend({}, VALID_OPTIONS_HTTP);
-      delete validOptions.outgoingHookURI;
-
-      var basicbot = new BasicBot(validOptions);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
     });
 
     it('should construct the bot with HTTPS mode with no channel', function() {
       var validOptions = extend({}, VALID_OPTIONS_HTTPS);
       delete validOptions.channel;
 
-      var basicbot = new BasicBot(validOptions);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(validOptions);
     });
 
     it('should construct the bot with HTTP mode', function() {
-      var basicbot = new BasicBot(VALID_OPTIONS_HTTP);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(VALID_OPTIONS_HTTP);
     });
 
     it('should throw an exception when given no options', function() {
@@ -132,10 +113,11 @@ describe('BasicBot', function() {
       }).to.throw(Error);
     });
 
-    it('should throw an exception when given no port', function() {
+    it('should construct the bot with HTTPS mode with no outgoingHookURI', function() {
       expect(function() {
-        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
-        delete invalidOptions.port;
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTP);
+        delete invalidOptions.outgoingHookURI;
+
         new BasicBot(invalidOptions);
       }).to.throw(Error);
     });
@@ -280,30 +262,6 @@ describe('BasicBot', function() {
       user_name: 'Foo',
       text: '0123456789abcdABCD @+-_!?/:"\'',
     };
-
-    /**
-     * URI where the Slack server will send to new messages with HTTP.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTP_URI =  url.format({
-      protocol: 'http',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTP.outgoingHookURI,
-    });
-
-    /**
-     * URI where the Slack server will send to new messages with HTTPS.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTPS_URI = url.format({
-      protocol: 'https',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTPS.outgoingHookURI,
-    });
 
     /**
      * Expects the specified event is fired with valid arguments.

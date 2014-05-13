@@ -15,6 +15,7 @@ app.post(/.*/, function(req, res) {
     headers: req.headers,
   });
 
+  res.set('Connection', 'close');
   res.send(json);
 });
 

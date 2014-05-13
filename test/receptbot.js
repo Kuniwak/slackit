@@ -42,8 +42,7 @@ describe('ReceptBot', function() {
    */
   var VALID_OPTIONS_HTTPS = {
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookURI: '/outgoing-hook',
-    port: OUTGOING_HOOK_PORT,
+    outgoingHookURI: 'https://localhost:9000/outgoing-hook',
   };
 
   /**
@@ -62,7 +61,7 @@ describe('ReceptBot', function() {
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
-    http: true,
+    outgoingHookURI: 'http://localhost:9000/outgoing-hook',
   }, VALID_OPTIONS_HTTPS);
 
   /**
@@ -81,14 +80,6 @@ describe('ReceptBot', function() {
       expect(receptbot).to.be.instanceof(ReceptBot);
     });
 
-    it('should construct the bot with HTTPS mode without outgoingHookURI', function() {
-      var validOptions = extend({}, VALID_OPTIONS_HTTP);
-      delete validOptions.outgoingHookURI;
-
-      var receptbot = new ReceptBot(validOptions);
-      expect(receptbot).to.be.instanceof(ReceptBot);
-    });
-
     it('should construct the bot with HTTP mode', function() {
       var receptbot = new ReceptBot(VALID_OPTIONS_HTTP);
       expect(receptbot).to.be.instanceof(ReceptBot);
@@ -100,18 +91,20 @@ describe('ReceptBot', function() {
       }).to.throw(Error);
     });
 
+    it('should throw an exception when given no outgoingHookURI', function() {
+      expect(function() {
+        var validOptions = extend({}, VALID_OPTIONS_HTTP);
+        delete validOptions.outgoingHookURI;
+
+        new ReceptBot(validOptions);
+      }).to.throw(Error);
+    });
+
     it('should throw an exception when given no outgoingHookToken', function() {
       expect(function() {
         var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
         delete invalidOptions.outgoingHookToken;
-        new ReceptBot(invalidOptions);
-      }).to.throw(Error);
-    });
 
-    it('should throw an exception when given no port', function() {
-      expect(function() {
-        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
-        delete invalidOptions.port;
         new ReceptBot(invalidOptions);
       }).to.throw(Error);
     });
@@ -196,30 +189,6 @@ describe('ReceptBot', function() {
     var INVALID_ARRIVED_POST_DATA = extend({}, VALID_ARRIVED_POST_DATA);
     INVALID_ARRIVED_POST_DATA.token = 'INVALID_INVALID_INVALID_INVALID_';
 
-    /**
-     * URI where the Slack server will send to new messages with HTTP.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTP_URI =  url.format({
-      protocol: 'http',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTP.outgoingHookURI,
-    });
-
-    /**
-     * URI where the Slack server will send to new messages with HTTPS.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTPS_URI = url.format({
-      protocol: 'https',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTPS.outgoingHookURI,
-    });
-
     var outgoingHookProcess;
     before(function(done) {
       // Start a fixture server that will send request to the receptbot.
@@ -250,11 +219,10 @@ describe('ReceptBot', function() {
      * Expects the specified event is fired with valid arguments.
      * @param {string} eventType Event type to test.
      * @param {Object} receptbotOptions Options for the receptbot.
-     * @param {string} outgoingHookURI URI to receive outgoing WebHooks.
      * @param {Object} receivedData Post data sent by the Slack server.
      * @param {function} done Mocha's `done` function.
      */
-    var expectEventWasFired = function(eventType, receptbotOptions, outgoingHookURI, receivedData, done) {
+    var expectEventWasFired = function(eventType, receptbotOptions, receivedData, done) {
       receptbot = new ReceptBot(receptbotOptions);
       receptbot.on(eventType, function(res) {
         expectOutgoingHookRequest(receivedData, res);
@@ -262,7 +230,7 @@ describe('ReceptBot', function() {
       });
       receptbot.listen(function() {
         // Send a request to the receptbot over the child process.
-        outgoingHookProcess.send({ url: outgoingHookURI, form: receivedData });
+        outgoingHookProcess.send({ url: receptbotOptions.outgoingHookURI, form: receivedData });
       });
     };
 
@@ -289,7 +257,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTP,
-          OUTGOING_HOOK_HTTP_URI,
           VALID_ARRIVED_POST_DATA,
           done);
     });
@@ -298,7 +265,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTPS,
-          OUTGOING_HOOK_HTTPS_URI,
           VALID_ARRIVED_POST_DATA,
           done);
     });
@@ -307,7 +273,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTP,
-          OUTGOING_HOOK_HTTP_URI,
           INVALID_ARRIVED_POST_DATA,
           done);
     });
@@ -316,7 +281,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTPS,
-          OUTGOING_HOOK_HTTPS_URI,
           INVALID_ARRIVED_POST_DATA,
           done);
     });
