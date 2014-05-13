@@ -1,7 +1,7 @@
 {
   "recept": {
     "outgoingHookToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
-    "outgoingHookURI": "https://localhost:9000/outgoing-hook",
+    "outgoingHookURI": "https://localhost:9000/outgoing-hook"
   },
   "send": {
     "teamName": "example",
