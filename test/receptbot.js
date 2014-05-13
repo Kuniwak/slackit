@@ -189,30 +189,6 @@ describe('ReceptBot', function() {
     var INVALID_ARRIVED_POST_DATA = extend({}, VALID_ARRIVED_POST_DATA);
     INVALID_ARRIVED_POST_DATA.token = 'INVALID_INVALID_INVALID_INVALID_';
 
-    /**
-     * URI where the Slack server will send to new messages with HTTP.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTP_URI =  url.format({
-      protocol: 'http',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTP.outgoingHookURI,
-    });
-
-    /**
-     * URI where the Slack server will send to new messages with HTTPS.
-     * @type {string}
-     * @const
-     */
-    var OUTGOING_HOOK_HTTPS_URI = url.format({
-      protocol: 'https',
-      hostname: 'localhost',
-      port: OUTGOING_HOOK_PORT,
-      pathname: VALID_OPTIONS_HTTPS.outgoingHookURI,
-    });
-
     var outgoingHookProcess;
     before(function(done) {
       // Start a fixture server that will send request to the receptbot.
@@ -243,11 +219,10 @@ describe('ReceptBot', function() {
      * Expects the specified event is fired with valid arguments.
      * @param {string} eventType Event type to test.
      * @param {Object} receptbotOptions Options for the receptbot.
-     * @param {string} outgoingHookURI URI to receive outgoing WebHooks.
      * @param {Object} receivedData Post data sent by the Slack server.
      * @param {function} done Mocha's `done` function.
      */
-    var expectEventWasFired = function(eventType, receptbotOptions, outgoingHookURI, receivedData, done) {
+    var expectEventWasFired = function(eventType, receptbotOptions, receivedData, done) {
       receptbot = new ReceptBot(receptbotOptions);
       receptbot.on(eventType, function(res) {
         expectOutgoingHookRequest(receivedData, res);
@@ -255,7 +230,7 @@ describe('ReceptBot', function() {
       });
       receptbot.listen(function() {
         // Send a request to the receptbot over the child process.
-        outgoingHookProcess.send({ url: outgoingHookURI, form: receivedData });
+        outgoingHookProcess.send({ url: receptbotOptions.outgoingHookURI, form: receivedData });
       });
     };
 
@@ -282,7 +257,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTP,
-          OUTGOING_HOOK_HTTP_URI,
           VALID_ARRIVED_POST_DATA,
           done);
     });
@@ -291,7 +265,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.MESSAGE,
           VALID_OPTIONS_HTTPS,
-          OUTGOING_HOOK_HTTPS_URI,
           VALID_ARRIVED_POST_DATA,
           done);
     });
@@ -300,7 +273,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTP,
-          OUTGOING_HOOK_HTTP_URI,
           INVALID_ARRIVED_POST_DATA,
           done);
     });
@@ -309,7 +281,6 @@ describe('ReceptBot', function() {
       expectEventWasFired(
           ReceptBot.EventType.INVALID_MESSAGE,
           VALID_OPTIONS_HTTPS,
-          OUTGOING_HOOK_HTTPS_URI,
           INVALID_ARRIVED_POST_DATA,
           done);
     });

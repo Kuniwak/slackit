@@ -7,7 +7,7 @@ process.on('message', function(data) {
     url: data.url,
     form: data.form,
     rejectUnauthorized: false,
-  });
+  }).on('error', function(err) { console.log(err, data); });
 });
 
 // Send a ready event to parent process.
