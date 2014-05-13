@@ -81,34 +81,22 @@ describe('BasicBot', function() {
 
   describe('#constructor', function() {
     it('should construct the bot with HTTPS mode', function() {
-      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(VALID_OPTIONS_HTTPS);
     });
 
     it('should construct the bot with HTTPS mode with certificate', function() {
-      var basicbot = new BasicBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
-      expect(basicbot).to.be.instanceof(BasicBot);
-    });
-
-    it('should construct the bot with HTTPS mode with no outgoingHookURI', function() {
-      var validOptions = extend({}, VALID_OPTIONS_HTTP);
-      delete validOptions.outgoingHookURI;
-
-      var basicbot = new BasicBot(validOptions);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(VALID_OPTIONS_HTTPS_WITH_CERTIFICATE);
     });
 
     it('should construct the bot with HTTPS mode with no channel', function() {
       var validOptions = extend({}, VALID_OPTIONS_HTTPS);
       delete validOptions.channel;
 
-      var basicbot = new BasicBot(validOptions);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(validOptions);
     });
 
     it('should construct the bot with HTTP mode', function() {
-      var basicbot = new BasicBot(VALID_OPTIONS_HTTP);
-      expect(basicbot).to.be.instanceof(BasicBot);
+      new BasicBot(VALID_OPTIONS_HTTP);
     });
 
     it('should throw an exception when given no options', function() {
@@ -125,10 +113,11 @@ describe('BasicBot', function() {
       }).to.throw(Error);
     });
 
-    it('should throw an exception when given no port', function() {
+    it('should construct the bot with HTTPS mode with no outgoingHookURI', function() {
       expect(function() {
-        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
-        delete invalidOptions.port;
+        var invalidOptions = extend({}, VALID_OPTIONS_HTTP);
+        delete invalidOptions.outgoingHookURI;
+
         new BasicBot(invalidOptions);
       }).to.throw(Error);
     });

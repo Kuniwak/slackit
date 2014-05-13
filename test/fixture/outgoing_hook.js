@@ -1,4 +1,5 @@
 var request = require('request');
+var http = require('http');
 
 // Send the request if the parent process request it.
 process.on('message', function(data) {

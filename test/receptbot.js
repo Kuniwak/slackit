@@ -42,8 +42,7 @@ describe('ReceptBot', function() {
    */
   var VALID_OPTIONS_HTTPS = {
     outgoingHookToken: 'XXXXXXXXXXXXXXXXXXXXXXXX',
-    outgoingHookURI: '/outgoing-hook',
-    port: OUTGOING_HOOK_PORT,
+    outgoingHookURI: 'https://localhost:9000/outgoing-hook',
   };
 
   /**
@@ -62,7 +61,7 @@ describe('ReceptBot', function() {
    * @type {Object.<string, string>}
    */
   var VALID_OPTIONS_HTTP = extend({
-    http: true,
+    outgoingHookURI: 'http://localhost:9000/outgoing-hook',
   }, VALID_OPTIONS_HTTPS);
 
   /**
@@ -81,14 +80,6 @@ describe('ReceptBot', function() {
       expect(receptbot).to.be.instanceof(ReceptBot);
     });
 
-    it('should construct the bot with HTTPS mode without outgoingHookURI', function() {
-      var validOptions = extend({}, VALID_OPTIONS_HTTP);
-      delete validOptions.outgoingHookURI;
-
-      var receptbot = new ReceptBot(validOptions);
-      expect(receptbot).to.be.instanceof(ReceptBot);
-    });
-
     it('should construct the bot with HTTP mode', function() {
       var receptbot = new ReceptBot(VALID_OPTIONS_HTTP);
       expect(receptbot).to.be.instanceof(ReceptBot);
@@ -100,18 +91,20 @@ describe('ReceptBot', function() {
       }).to.throw(Error);
     });
 
+    it('should throw an exception when given no outgoingHookURI', function() {
+      expect(function() {
+        var validOptions = extend({}, VALID_OPTIONS_HTTP);
+        delete validOptions.outgoingHookURI;
+
+        new ReceptBot(validOptions);
+      }).to.throw(Error);
+    });
+
     it('should throw an exception when given no outgoingHookToken', function() {
       expect(function() {
         var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
         delete invalidOptions.outgoingHookToken;
-        new ReceptBot(invalidOptions);
-      }).to.throw(Error);
-    });
 
-    it('should throw an exception when given no port', function() {
-      expect(function() {
-        var invalidOptions = extend({}, VALID_OPTIONS_HTTPS);
-        delete invalidOptions.port;
         new ReceptBot(invalidOptions);
       }).to.throw(Error);
     });
